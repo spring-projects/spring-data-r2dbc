@@ -61,7 +61,6 @@ public class SimpleR2dbcRepositoryIntegrationTests extends R2dbcIntegrationTestS
 
 	@Before
 	public void before() {
-
 		Hooks.onOperatorDebug();
 
 		this.connectionFactory = createConnectionFactory();
@@ -122,14 +121,19 @@ public class SimpleR2dbcRepositoryIntegrationTests extends R2dbcIntegrationTestS
 
 		LegoSet legoSet1 = new LegoSet(null, "SCHAUFELRADBAGGER", 12);
 		LegoSet legoSet2 = new LegoSet(null, "FORSCHUNGSSCHIFF", 13);
+		LegoSet legoSet3 = new LegoSet(null, "RALLYEAUTO", 14);
+		LegoSet legoSet4 = new LegoSet(null, "VOLTRON", 15);
 
-		repository.saveAll(Arrays.asList(legoSet1, legoSet2)) //
+		repository.saveAll(Arrays.asList(legoSet1, legoSet2, legoSet3, legoSet4)) //
 				.as(StepVerifier::create) //
-				.expectNextCount(2) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(12)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(13)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(14)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(15)) //
 				.verifyComplete();
 
 		Map<String, Object> map = jdbc.queryForMap("SELECT COUNT(*) FROM repo_legoset");
-		assertThat(map).containsEntry("count", 2L);
+		assertThat(map).containsEntry("count", 4L);
 	}
 
 	@Test
@@ -137,14 +141,19 @@ public class SimpleR2dbcRepositoryIntegrationTests extends R2dbcIntegrationTestS
 
 		LegoSet legoSet1 = new LegoSet(null, "SCHAUFELRADBAGGER", 12);
 		LegoSet legoSet2 = new LegoSet(null, "FORSCHUNGSSCHIFF", 13);
+		LegoSet legoSet3 = new LegoSet(null, "RALLYEAUTO", 14);
+		LegoSet legoSet4 = new LegoSet(null, "VOLTRON", 15);
 
-		repository.saveAll(Flux.just(legoSet1, legoSet2)) //
+		repository.saveAll(Flux.just(legoSet1, legoSet2, legoSet3, legoSet4)) //
 				.as(StepVerifier::create) //
-				.expectNextCount(2) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(12)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(13)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(14)) //
+				.consumeNextWith(legoSet -> assertThat(legoSet.manual).isEqualTo(15)) //
 				.verifyComplete();
 
 		Map<String, Object> map = jdbc.queryForMap("SELECT COUNT(*) FROM repo_legoset");
-		assertThat(map).containsEntry("count", 2L);
+		assertThat(map).containsEntry("count", 4L);
 	}
 
 	@Test
