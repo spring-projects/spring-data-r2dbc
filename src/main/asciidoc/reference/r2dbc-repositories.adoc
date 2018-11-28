@@ -6,7 +6,7 @@
 
 This chapter points out the specialties for repository support for R2DBC.
 This chapter builds on the core repository support explained in <<repositories>>.
-You should have a sound understanding of the basic concepts explained there.
+Before reading this chapter, you should have a sound understanding of the basic concepts explained there.
 
 [[r2dbc.repositories.usage]]
 == Usage
@@ -41,8 +41,8 @@ public interface PersonRepository extends ReactiveCrudRepository<Person, Long> {
 ----
 ====
 
-Right now this interface serves only to provide type information, but we can add additional methods to it later.
-To configure R2DBC repositories, use the `@EnableR2dbcRepositories` annotation.
+Right now, this interface serves only to provide type information, but we can add additional methods to it later.
+To configure R2DBC repositories, you can use the `@EnableR2dbcRepositories` annotation.
 If no base package is configured, the infrastructure scans the package of the annotated configuration class.
 The following example shows how to use Java configuration for a repository:
 
@@ -64,7 +64,7 @@ class ApplicationConfig extends AbstractR2dbcConfiguration {
 
 Because our domain repository extends `ReactiveCrudRepository`, it provides you with CRUD operations to access the entities.
 Working with the repository instance is just a matter of dependency injecting it into a client.
-Consequently, retrieve all `Person` objects would resemble the following code:
+Consequently, you can retrieve all `Person` objects would resemble the following code:
 
 .Paging access to Person entities
 ====
