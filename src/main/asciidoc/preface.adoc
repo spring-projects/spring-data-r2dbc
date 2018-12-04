@@ -57,7 +57,7 @@ There is also another important mechanism that we on the Spring team associate w
 In synchronous, imperative code, blocking calls serve as a natural form of back pressure that forces the caller to wait.
 In non-blocking code, it becomes important to control the rate of events so that a fast producer does not overwhelm its destination.
 
-Reactive Streams is a https://github.com/reactive-streams/reactive-streams-jvm/blob/v{reactiveStreamsVersion}/README.md#specification[small spec] (also https://docs.oracle.com/javase/9/docs/api/java/util/concurrent/Flow.html[adopted] in Java 9) that defines the interaction between asynchronous components with back pressure.
+https://github.com/reactive-streams/reactive-streams-jvm/blob/v{reactiveStreamsVersion}/README.md#specification[Reactive Streams is a small spec] (also https://docs.oracle.com/javase/9/docs/api/java/util/concurrent/Flow.html[adopted in Java 9]) that defines the interaction between asynchronous components with back pressure.
 For example a data repository (acting as {reactiveStreamsJavadoc}/org/reactivestreams/Publisher.html[`Publisher`]) can produce data that an HTTP server (acting as {reactiveStreamsJavadoc}/org/reactivestreams/Subscriber.html`[`Subscriber`]) can then write to the response.
 The main purpose of Reactive Streams is to let the subscriber to control how quickly or how slowly the publisher produces data.
 
