@@ -162,7 +162,7 @@ public class R2dbcApp {
 }
 ----
 
-When you run the main program, the preceding examples produce the following output:
+When you run the main program, the preceding examples produce output similar to the following:
 
 [source]
 ----
