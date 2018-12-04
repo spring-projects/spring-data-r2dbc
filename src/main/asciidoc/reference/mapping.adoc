@@ -81,7 +81,7 @@ The mapping metadata infrastructure is defined in the separate spring-data-commo
 The mapping subsystem allows the customization of the object construction by annotating a constructor with the `@PersistenceConstructor` annotation. The values to be used for the constructor parameters are resolved in the following way:
 
 * If a parameter is annotated with the `@Value` annotation, the given expression is evaluated and the result is used as the parameter value.
-* If the Java type has a property whose name matches the given field of the input document, then it's property information is used to select the appropriate constructor parameter to pass the input field value to. This works only if the parameter name information is present in the java `.class` files which can be achieved by compiling the source with debug information or using the new `-parameters` command-line switch for javac in Java 8.
+* If the Java type has a property whose name matches the given field of the input document, then it's property information is used to select the appropriate constructor parameter to pass the input field value to. This works only if the parameter name information is present in the java `.class` files which can be achieved by compiling the source with debug information or using the `-parameters` command-line switch for javac in Java 8.
 * Otherwise a `MappingException` will be thrown indicating that the given constructor parameter could not be bound.
 
 [source,java]
