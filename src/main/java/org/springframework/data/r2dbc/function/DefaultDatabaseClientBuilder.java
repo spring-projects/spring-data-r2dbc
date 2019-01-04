@@ -38,6 +38,7 @@ class DefaultDatabaseClientBuilder implements DatabaseClient.Builder {
 	private @Nullable ConnectionFactory connectionFactory;
 	private @Nullable R2dbcExceptionTranslator exceptionTranslator;
 	private ReactiveDataAccessStrategy accessStrategy;
+	private NamedParameterSupport namedParameterSupport;
 
 	DefaultDatabaseClientBuilder() {}
 
@@ -48,6 +49,7 @@ class DefaultDatabaseClientBuilder implements DatabaseClient.Builder {
 		this.connectionFactory = other.connectionFactory;
 		this.exceptionTranslator = other.exceptionTranslator;
 		this.accessStrategy = other.accessStrategy;
+		this.namedParameterSupport = other.namedParameterSupport;
 	}
 
 	@Override
@@ -78,6 +80,15 @@ class DefaultDatabaseClientBuilder implements DatabaseClient.Builder {
 	}
 
 	@Override
+	public Builder namedParameters(NamedParameterSupport namedParameterSupport) {
+
+		Assert.notNull(namedParameterSupport, "NamedParameterSupportAccessStrategy must not be null!");
+
+		this.namedParameterSupport = namedParameterSupport;
+		return this;
+	}
+
+	@Override
 	public DatabaseClient build() {
 
 		R2dbcExceptionTranslator exceptionTranslator = this.exceptionTranslator;
@@ -97,12 +108,20 @@ class DefaultDatabaseClientBuilder implements DatabaseClient.Builder {
 			accessStrategy = new DefaultReactiveDataAccessStrategy(dialect);
 		}
 
-		return doBuild(this.connectionFactory, exceptionTranslator, accessStrategy, new DefaultDatabaseClientBuilder(this));
+		NamedParameterSupport namedParameterSupport = this.namedParameterSupport;
+
+		if (namedParameterSupport == null) {
+			namedParameterSupport = NamedParameterSupport.enabled();
+		}
+
+		return doBuild(this.connectionFactory, exceptionTranslator, accessStrategy, namedParameterSupport,
+				new DefaultDatabaseClientBuilder(this));
 	}
 
 	protected DatabaseClient doBuild(ConnectionFactory connector, R2dbcExceptionTranslator exceptionTranslator,
-			ReactiveDataAccessStrategy accessStrategy, DefaultDatabaseClientBuilder builder) {
-		return new DefaultDatabaseClient(connector, exceptionTranslator, accessStrategy, builder);
+			ReactiveDataAccessStrategy accessStrategy, NamedParameterSupport namedParameterSupport,
+			DefaultDatabaseClientBuilder builder) {
+		return new DefaultDatabaseClient(connector, exceptionTranslator, accessStrategy, namedParameterSupport, builder);
 	}
 
 	@Override
