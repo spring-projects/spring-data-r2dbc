@@ -26,7 +26,7 @@ import org.springframework.util.Assert;
  * {@link SettableValue}.
  * <p>
  * This class is intended for passing in a simple Map of parameter values to the methods of the
- * {@link NamedParameterSupport} class.
+ * {@link NamedParameterExpander} class.
  *
  * @author Mark Paluch
  */

@@ -19,7 +19,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Interface that defines common functionality for objects that can offer parameter values for named bind parameters,
- * serving as argument for {@link NamedParameterSupport} operations.
+ * serving as argument for {@link NamedParameterExpander} operations.
  * <p>
  * This interface allows for the specification of the type in addition to parameter values. All parameter values and
  * types are identified by specifying the name of the parameter.
@@ -35,7 +35,7 @@ public interface BindParameterSource {
 	 * Determine whether there is a value for the specified named parameter.
 	 *
 	 * @param paramName the name of the parameter.
-	 * @return whether there is a value defined.
+	 * @return {@literal true} if there is a value defined; {@literal false} otherwise.
 	 */
 	boolean hasValue(String paramName);
 
@@ -43,7 +43,7 @@ public interface BindParameterSource {
 	 * Return the parameter value for the requested named parameter.
 	 *
 	 * @param paramName the name of the parameter.
-	 * @return the value of the specified parameter.
+	 * @return the value of the specified parameter, can be {@literal null}.
 	 * @throws IllegalArgumentException if there is no value for the requested parameter.
 	 */
 	@Nullable

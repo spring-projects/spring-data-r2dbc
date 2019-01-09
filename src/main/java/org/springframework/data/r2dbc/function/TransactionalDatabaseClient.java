@@ -190,14 +190,14 @@ public interface TransactionalDatabaseClient extends DatabaseClient {
 		Builder dataAccessStrategy(ReactiveDataAccessStrategy accessStrategy);
 
 		/**
-		 * Configures {@link NamedParameterSupport}.
+		 * Configures {@link NamedParameterExpander}.
 		 *
-		 * @param namedParameterSupport must not be {@literal null}.
+		 * @param namedParameters must not be {@literal null}.
 		 * @return {@code this} {@link Builder}.
-		 * @see NamedParameterSupport#enabled()
-		 * @see NamedParameterSupport#disabled()
+		 * @see NamedParameterExpander#enabled()
+		 * @see NamedParameterExpander#disabled()
 		 */
-		Builder namedParameters(NamedParameterSupport namedParameterSupport);
+		Builder namedParameters(NamedParameterExpander namedParameters);
 
 		/**
 		 * Configures a {@link Consumer} to configure this builder.

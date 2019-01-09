@@ -34,7 +34,7 @@ import org.springframework.data.r2dbc.dialect.BindMarkersFactory;
  *
  * @author Mark Paluch
  */
-public class NamedParameterSupport {
+public class NamedParameterExpander {
 
 	/** Default maximum number of entries for the SQL cache: 256. */
 	public static final int DEFAULT_CACHE_LIMIT = 256;
@@ -52,24 +52,24 @@ public class NamedParameterSupport {
 		}
 	};
 
-	private NamedParameterSupport() {}
+	private NamedParameterExpander() {}
 
 	/**
-	 * Creates a disabled instance of {@link NamedParameterSupport}.
+	 * Creates a disabled instance of {@link NamedParameterExpander}.
 	 *
-	 * @return a disabled instance of {@link NamedParameterSupport}.
+	 * @return a disabled instance of {@link NamedParameterExpander}.
 	 */
-	public static NamedParameterSupport disabled() {
+	public static NamedParameterExpander disabled() {
 		return Disabled.INSTANCE;
 	}
 
 	/**
-	 * Creates a new enabled instance of {@link NamedParameterSupport}.
+	 * Creates a new enabled instance of {@link NamedParameterExpander}.
 	 *
-	 * @return a new enabled instance of {@link NamedParameterSupport}.
+	 * @return a new enabled instance of {@link NamedParameterExpander}.
 	 */
-	public static NamedParameterSupport enabled() {
-		return new NamedParameterSupport();
+	public static NamedParameterExpander enabled() {
+		return new NamedParameterExpander();
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class NamedParameterSupport {
 	/**
 	 * Disabled named parameter support.
 	 */
-	static class Disabled extends NamedParameterSupport {
+	static class Disabled extends NamedParameterExpander {
 
 		private static final Disabled INSTANCE = new Disabled();
 

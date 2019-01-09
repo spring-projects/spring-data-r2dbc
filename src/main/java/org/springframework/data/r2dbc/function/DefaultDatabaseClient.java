@@ -74,18 +74,18 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 
 	private final ReactiveDataAccessStrategy dataAccessStrategy;
 
-	private final NamedParameterSupport namedParameterSupport;
+	private final NamedParameterExpander namedParameters;
 
 	private final DefaultDatabaseClientBuilder builder;
 
 	DefaultDatabaseClient(ConnectionFactory connector, R2dbcExceptionTranslator exceptionTranslator,
-			ReactiveDataAccessStrategy dataAccessStrategy, NamedParameterSupport namedParameterSupport,
+			ReactiveDataAccessStrategy dataAccessStrategy, NamedParameterExpander namedParameters,
 			DefaultDatabaseClientBuilder builder) {
 
 		this.connector = connector;
 		this.exceptionTranslator = exceptionTranslator;
 		this.dataAccessStrategy = dataAccessStrategy;
-		this.namedParameterSupport = namedParameterSupport;
+		this.namedParameters = namedParameters;
 		this.builder = builder;
 	}
 
@@ -326,7 +326,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 					logger.debug("Executing SQL statement [" + sql + "]");
 				}
 
-				BindableOperation operation = namedParameterSupport.expand(sql, dataAccessStrategy.getBindMarkersFactory(),
+				BindableOperation operation = namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(),
 						new MapBindParameterSource(byName));
 
 				Statement<?> statement = it.createStatement(operation.toQuery());

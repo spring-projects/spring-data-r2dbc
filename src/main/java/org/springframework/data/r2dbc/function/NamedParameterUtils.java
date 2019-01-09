@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2002-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Statement;
@@ -39,7 +38,11 @@ import org.springframework.util.Assert;
  * <p>
  * Only intended for internal use within Spring's Data's R2DBC framework. Partially extracted from Spring's JDBC named
  * parameter support.
+ * <p>
+ * This is a subset of Spring Frameworks's {@code org.springframework.jdbc.core.namedparam.NamedParameterUtils}.
  *
+ * @author Thomas Risberg
+ * @author Juergen Hoeller
  * @author Mark Paluch
  */
 abstract class NamedParameterUtils {
