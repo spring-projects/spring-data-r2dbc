@@ -145,4 +145,42 @@ public abstract class ExternalDatabase extends ExternalResource {
 			return password;
 		}
 	}
+
+	/**
+	 * An {@link ExternalDatabase} that couldn't get constructed.
+	 *
+	 * @author Jens Schauder
+	 */
+	static class NoSuchDatabase extends ExternalDatabase {
+
+		@Override
+		boolean checkValidity() {
+			return false;
+		}
+
+		@Override
+		public int getPort() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getHostname() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getDatabase() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getUsername() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public String getPassword() {
+			throw new UnsupportedOperationException();
+		}
+	}
 }

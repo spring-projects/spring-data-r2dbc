@@ -4,6 +4,8 @@ import io.r2dbc.postgresql.PostgresqlConnectionConfiguration;
 import io.r2dbc.postgresql.PostgresqlConnectionFactory;
 import io.r2dbc.spi.ConnectionFactory;
 
+import java.util.function.Supplier;
+
 import javax.sql.DataSource;
 
 import org.postgresql.ds.PGSimpleDataSource;
@@ -18,7 +20,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  */
 public class PostgresTestSupport {
 
-	private static final PostgreSQLContainer POSTGRESQL_CONTAINER = new PostgreSQLContainer();
+	private static ExternalDatabase testContainerDatabase;
 
 	public static String CREATE_TABLE_LEGOSET = "CREATE TABLE legoset (\n" //
 			+ "    id          integer CONSTRAINT id PRIMARY KEY,\n" //
@@ -41,11 +43,29 @@ public class PostgresTestSupport {
 	 */
 	public static ExternalDatabase database() {
 
-		ExternalDatabase local = local();
-		if (local.checkValidity()) {
-			return local;
+		if (Boolean.getBoolean("spring.data.r2dbc.test.preferLocalDatabase")) {
+
+			return getFirstWorkingDatabase( //
+					PostgresTestSupport::local, //
+					PostgresTestSupport::testContainer //
+			);
 		} else {
-			return testContainer();
+
+			return getFirstWorkingDatabase( //
+					PostgresTestSupport::testContainer, //
+					PostgresTestSupport::local //
+			);
+		}
+	}
+
+	private static ExternalDatabase getFirstWorkingDatabase(Supplier<ExternalDatabase> first,
+			Supplier<ExternalDatabase> second) {
+
+		ExternalDatabase database = first.get();
+		if (database.checkValidity()) {
+			return database;
+		} else {
+			return second.get();
 		}
 	}
 
@@ -67,14 +87,27 @@ public class PostgresTestSupport {
 	 */
 	private static ExternalDatabase testContainer() {
 
-		POSTGRESQL_CONTAINER.start();
+		if (testContainerDatabase == null) {
 
-		return ProvidedDatabase.builder() //
-				.hostname("localhost") //
-				.port(POSTGRESQL_CONTAINER.getFirstMappedPort()) //
-				.database(POSTGRESQL_CONTAINER.getDatabaseName()) //
-				.username(POSTGRESQL_CONTAINER.getUsername()) //
-				.password(POSTGRESQL_CONTAINER.getPassword()).build();
+			try {
+				PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer();
+				postgreSQLContainer.start();
+
+				testContainerDatabase = ProvidedDatabase.builder() //
+						.hostname("localhost") //
+						.port(postgreSQLContainer.getFirstMappedPort()) //
+						.database(postgreSQLContainer.getDatabaseName()) //
+						.username(postgreSQLContainer.getUsername()) //
+						.password(postgreSQLContainer.getPassword()).build();
+
+			} catch (IllegalStateException ise) {
+				// docker is not available.
+				testContainerDatabase = new ExternalDatabase.NoSuchDatabase();
+			}
+
+		}
+
+		return testContainerDatabase;
 	}
 
 	/**
@@ -106,4 +139,5 @@ public class PostgresTestSupport {
 
 		return dataSource;
 	}
+
 }
