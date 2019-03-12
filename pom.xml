@@ -7,7 +7,7 @@
 
 	<groupId>org.springframework.data</groupId>
 	<artifactId>spring-data-r2dbc</artifactId>
-	<version>1.0.0.BUILD-SNAPSHOT</version>
+	<version>1.0.0.gh-73-SNAPSHOT</version>
 
 	<name>Spring Data R2DBC</name>
 	<description>Spring Data module for R2DBC.</description>
