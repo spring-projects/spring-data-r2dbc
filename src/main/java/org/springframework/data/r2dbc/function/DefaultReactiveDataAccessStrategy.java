@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.convert.CustomConversions.StoreConversions;
@@ -47,12 +48,14 @@ import org.springframework.data.relational.core.mapping.RelationalPersistentEnti
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.OrderByField;
+import org.springframework.data.relational.core.sql.Select;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndOrderBy;
 import org.springframework.data.relational.core.sql.StatementBuilder;
 import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.core.sql.render.NamingStrategies;
 import org.springframework.data.relational.core.sql.render.RenderContext;
 import org.springframework.data.relational.core.sql.render.RenderNamingStrategy;
+import org.springframework.data.relational.core.sql.render.SelectRenderContext;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
@@ -120,6 +123,21 @@ public class DefaultReactiveDataAccessStrategy implements ReactiveDataAccessStra
 			@Override
 			public RenderNamingStrategy getNamingStrategy() {
 				return NamingStrategies.asIs();
+			}
+
+			@Override
+			public SelectRenderContext getSelect() {
+				return new SelectRenderContext() {
+					@Override
+					public Function<Select, ? extends CharSequence> afterSelectList() {
+						return it -> "";
+					}
+
+					@Override
+					public Function<Select, ? extends CharSequence> afterOrderBy(boolean hasOrderBy) {
+						return it -> "";
+					}
+				};
 			}
 		};
 
@@ -238,7 +256,7 @@ public class DefaultReactiveDataAccessStrategy implements ReactiveDataAccessStra
 		return getRequiredPersistentEntity(type).getTableName();
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.r2dbc.function.ReactiveDataAccessStrategy#getStatements()
 	 */
@@ -295,6 +313,7 @@ public class DefaultReactiveDataAccessStrategy implements ReactiveDataAccessStra
 			offset = OptionalLong.of(page.getOffset());
 		}
 
+		// See https://github.com/spring-projects/spring-data-r2dbc/issues/55
 		return StatementRenderUtil.render(selectBuilder.build(), limit, offset, this.dialect);
 	}
 

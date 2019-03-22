@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *      https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,11 +27,11 @@ import org.junit.Test;
 
 import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.domain.SettableValue;
+import org.springframework.data.relational.core.dialect.RenderContextFactory;
 import org.springframework.data.relational.core.sql.Delete;
 import org.springframework.data.relational.core.sql.Insert;
 import org.springframework.data.relational.core.sql.Select;
 import org.springframework.data.relational.core.sql.Update;
-import org.springframework.data.relational.core.sql.render.NamingStrategies;
 
 /**
  * Unit tests for {@link StatementFactory}.
@@ -40,7 +40,10 @@ import org.springframework.data.relational.core.sql.render.NamingStrategies;
  */
 public class StatementFactoryUnitTests {
 
-	DefaultStatementFactory statements = new DefaultStatementFactory(PostgresDialect.INSTANCE, NamingStrategies::asIs);
+	// See https://github.com/spring-projects/spring-data-r2dbc/issues/55
+	DefaultStatementFactory statements = new DefaultStatementFactory(PostgresDialect.INSTANCE,
+			new RenderContextFactory(org.springframework.data.relational.core.dialect.PostgresDialect.INSTANCE)
+					.createRenderContext());
 
 	Statement statementMock = mock(Statement.class);
 
@@ -133,7 +136,7 @@ public class StatementFactoryUnitTests {
 		});
 
 		assertThat(insert.getSource()).isInstanceOf(Insert.class);
-		assertThat(insert.toQuery()).isEqualTo("INSERT INTO foo (bar) VALUES($1)");
+		assertThat(insert.toQuery()).isEqualTo("INSERT INTO foo (bar) VALUES ($1)");
 
 		insert.bind(statementMock);
 		verify(statementMock).bind(0, "Foo");
