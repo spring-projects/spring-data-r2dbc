@@ -23,7 +23,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
  * @author Sebastien Deleuze
  */
 suspend fun DatabaseClient.GenericExecuteSpec.await() {
-    then().awaitFirstOrNull()
+	then().awaitFirstOrNull()
 }
 
 /**
@@ -33,7 +33,7 @@ suspend fun DatabaseClient.GenericExecuteSpec.await() {
  * @author Sebastien Deleuze
  */
 inline fun <reified T : Any> DatabaseClient.GenericExecuteSpec.asType(): DatabaseClient.TypedExecuteSpec<T>
-        = `as`(T::class.java)
+		= `as`(T::class.java)
 
 /**
  * Extension for [DatabaseClient.GenericSelectSpec.as] providing a
@@ -42,7 +42,7 @@ inline fun <reified T : Any> DatabaseClient.GenericExecuteSpec.asType(): Databas
  * @author Sebastien Deleuze
  */
 inline fun <reified T : Any> DatabaseClient.GenericSelectSpec.asType(): DatabaseClient.TypedSelectSpec<T>
-        = `as`(T::class.java)
+		= `as`(T::class.java)
 
 /**
  * Coroutines variant of [DatabaseClient.TypedExecuteSpec.then].
@@ -50,7 +50,7 @@ inline fun <reified T : Any> DatabaseClient.GenericSelectSpec.asType(): Database
  * @author Sebastien Deleuze
  */
 suspend fun <T> DatabaseClient.TypedExecuteSpec<T>.await() {
-    then().awaitFirstOrNull()
+	then().awaitFirstOrNull()
 }
 
 /**
@@ -60,7 +60,7 @@ suspend fun <T> DatabaseClient.TypedExecuteSpec<T>.await() {
  * @author Sebastien Deleuze
  */
 inline fun <reified T : Any> DatabaseClient.TypedExecuteSpec<T>.asType(): DatabaseClient.TypedExecuteSpec<T>
-        = `as`(T::class.java)
+		= `as`(T::class.java)
 
 /**
  * Coroutines variant of [DatabaseClient.InsertSpec.then].
@@ -68,7 +68,7 @@ inline fun <reified T : Any> DatabaseClient.TypedExecuteSpec<T>.asType(): Databa
  * @author Sebastien Deleuze
  */
 suspend fun <T> DatabaseClient.InsertSpec<T>.await() {
-    then().awaitFirstOrNull()
+	then().awaitFirstOrNull()
 }
 
 /**
@@ -78,5 +78,5 @@ suspend fun <T> DatabaseClient.InsertSpec<T>.await() {
  * @author Sebastien Deleuze
  */
 inline fun <reified T : Any> DatabaseClient.InsertIntoSpec.into(): DatabaseClient.TypedInsertSpec<T>
-        = into(T::class.java)
+		= into(T::class.java)
 

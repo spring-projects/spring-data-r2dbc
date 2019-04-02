@@ -23,7 +23,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
  * @author Sebastien Deleuze
  */
 suspend fun <T> RowsFetchSpec<T>.awaitOne(): T?
-        = one().awaitFirstOrNull()
+		= one().awaitFirstOrNull()
 
 /**
  * Coroutines variant of [RowsFetchSpec.first].
@@ -31,7 +31,7 @@ suspend fun <T> RowsFetchSpec<T>.awaitOne(): T?
  * @author Sebastien Deleuze
  */
 suspend fun <T> RowsFetchSpec<T>.awaitFirst(): T?
-        = first().awaitFirstOrNull()
+		= first().awaitFirstOrNull()
 
 // TODO Coroutines variant of [RowsFetchSpec.all], depends on [kotlinx.coroutines#254](https://github.com/Kotlin/kotlinx.coroutines/issues/254).
 // suspend fun <T> RowsFetchSpec<T>.awaitAll() = all()...
