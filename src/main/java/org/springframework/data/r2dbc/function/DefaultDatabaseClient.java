@@ -332,6 +332,17 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 
 		<T> FetchSpec<T> exchange(String sql, BiFunction<Row, RowMetadata, T> mappingFunction) {
 
+				PreparedOperation pop;
+
+			if (sqlSupplier instanceof PreparedOperation<?>) {
+				pop = ((PreparedOperation<?>) sqlSupplier);
+			} else {
+				pop = new PrameterbindingPreparedOperation(namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(),
+						new MapBindParameterSource(byName)), byName, byIndex);
+			}
+
+
+
 			Function<Connection, Statement> executeFunction = it -> {
 
 				if (logger.isDebugEnabled()) {
@@ -365,7 +376,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 				return statement;
 			};
 
-			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(executeFunction.apply(it).execute());
+			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(pop.bind(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
 					sql, //
