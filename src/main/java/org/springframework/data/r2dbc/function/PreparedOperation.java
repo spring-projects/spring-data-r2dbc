@@ -15,6 +15,7 @@
  */
 package org.springframework.data.r2dbc.function;
 
+import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 
 import java.util.function.Supplier;
@@ -45,4 +46,6 @@ public interface PreparedOperation<T> extends QueryOperation {
 	 * @return the bound statement.
 	 */
 	Statement bind(Statement to);
+
+	Statement bind(Connection connection);
 }

@@ -15,6 +15,7 @@
  */
 package org.springframework.data.r2dbc.function;
 
+import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -469,6 +470,17 @@ class DefaultStatementFactory implements StatementFactory {
 
 			binding.apply(to);
 			return to;
+		}
+
+		@Override
+		public Statement bind(Connection connection) {
+
+			// TODO add logging
+//			if (logger.isDebugEnabled()) {
+//				logger.debug("Executing SQL statement [" + sql + "]");
+//			}
+
+			return bind(connection.createStatement(toQuery()));
 		}
 	}
 }
