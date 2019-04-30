@@ -45,6 +45,7 @@ public interface PreparedOperation<T> extends QueryOperation {
 	 * @param to the target statement to bind parameters to.
 	 * @return the bound statement.
 	 */
+	@Deprecated
 	Statement bind(Statement to);
 
 	Statement bind(Connection connection);

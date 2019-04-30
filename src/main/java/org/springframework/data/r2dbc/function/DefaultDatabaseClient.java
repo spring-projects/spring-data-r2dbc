@@ -908,20 +908,10 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 						byName.forEach(it::bind);
 					});
 
-			String sql = operation.toQuery();
-			Function<Connection, Statement> insertFunction = it -> {
-
-				if (logger.isDebugEnabled()) {
-					logger.debug("Executing SQL statement [" + sql + "]");
-				}
-
-				return operation.bind(it.createStatement(sql));
-			};
-
-			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(insertFunction.apply(it).execute());
+			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.bind(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
-					sql, //
+					operation.toQuery(), //
 					resultFunction, //
 					it -> resultFunction.apply(it).flatMap(Result::getRowsUpdated).next(), //
 					mappingFunction);

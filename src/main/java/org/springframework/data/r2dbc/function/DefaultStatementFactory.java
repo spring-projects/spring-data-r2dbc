@@ -475,7 +475,7 @@ class DefaultStatementFactory implements StatementFactory {
 		@Override
 		public Statement bind(Connection connection) {
 
-			// TODO add logging
+			// TODO add back logging
 //			if (logger.isDebugEnabled()) {
 //				logger.debug("Executing SQL statement [" + sql + "]");
 //			}
