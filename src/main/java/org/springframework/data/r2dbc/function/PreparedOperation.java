@@ -42,11 +42,8 @@ public interface PreparedOperation<T> extends QueryOperation {
 	/**
 	 * Bind query parameters to a {@link Statement}.
 	 *
-	 * @param to the target statement to bind parameters to.
+	 * @param connection the {@link Connection} used for constructing a statement
 	 * @return the bound statement.
 	 */
-	@Deprecated
-	Statement bind(Statement to);
-
 	Statement bind(Connection connection);
 }

@@ -56,11 +56,6 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 	}
 
 	@Override
-	public Statement bind(Statement to) {
-		throw new UnsupportedOperationException("we don't do that here");
-	}
-
-	@Override
 	public Statement bind(Connection connection) {
 
 		Statement statement = connection.createStatement(operation.toQuery());
