@@ -65,15 +65,7 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 
 		Statement statement = connection.createStatement(operation.toQuery());
 
-		byName.forEach((name, o) -> {
-
-			if (o.getValue() != null) {
-				operation.bind(statement, name, o.getValue());
-			} else {
-				operation.bindNull(statement, name, o.getType());
-			}
-		});
-
+		bindByName(statement, byName);
 		bindByIndex(statement, byIndex);
 
 		return statement;
@@ -84,14 +76,15 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 		return operation.toQuery();
 	}
 
-	private static void bindByName(Statement statement, Map<String, SettableValue> byName) {
+	// todo that is a weird assymmetry between bindByName and bindByIndex
+	private  void bindByName(Statement statement, Map<String, SettableValue> byName) {
 
 		byName.forEach((name, o) -> {
 
 			if (o.getValue() != null) {
-				statement.bind(name, o.getValue());
+				operation.bind(statement,name, o.getValue());
 			} else {
-				statement.bindNull(name, o.getType());
+				operation.bindNull(statement, name, o.getType());
 			}
 		});
 	}
