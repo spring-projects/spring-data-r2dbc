@@ -1019,12 +1019,10 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 						});
 					});
 
-			String sql = operation.toQuery();
-
 			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.bind(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
-					sql, //
+					operation.toQuery(), //
 					resultFunction, //
 					it -> resultFunction //
 							.apply(it) //
