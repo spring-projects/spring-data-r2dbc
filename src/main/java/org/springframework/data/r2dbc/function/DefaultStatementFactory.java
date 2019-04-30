@@ -480,7 +480,12 @@ class DefaultStatementFactory implements StatementFactory {
 //				logger.debug("Executing SQL statement [" + sql + "]");
 //			}
 
-			return bind(connection.createStatement(toQuery()));
+			Statement statement = connection.createStatement(toQuery());
+
+			// TODO there is too much binding going on.
+			// this looks silly and is by no means easy to understand (i.e. I don't)
+			binding.apply(statement);
+			return bind(statement);
 		}
 	}
 }
