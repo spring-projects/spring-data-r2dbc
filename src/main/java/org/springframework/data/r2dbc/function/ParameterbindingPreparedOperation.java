@@ -17,24 +17,37 @@ package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
-import org.springframework.data.r2dbc.domain.SettableValue;
 
 import java.util.Map;
+
+import org.springframework.data.r2dbc.domain.SettableValue;
 
 /**
  * @author Jens Schauder
  */
-public class PrameterbindingPreparedOperation implements PreparedOperation<BindableOperation> {
+public class ParameterbindingPreparedOperation implements PreparedOperation<BindableOperation> {
 
 	private final BindableOperation operation;
 	private final Map<String, SettableValue> byName;
 	private final Map<Integer, SettableValue> byIndex;
 
-	public PrameterbindingPreparedOperation(BindableOperation operation, Map<String, SettableValue> byName, Map<Integer, SettableValue> byIndex) {
+	private ParameterbindingPreparedOperation(BindableOperation operation, Map<String, SettableValue> byName,
+			Map<Integer, SettableValue> byIndex) {
 
 		this.operation = operation;
 		this.byName = byName;
 		this.byIndex = byIndex;
+	}
+
+	ParameterbindingPreparedOperation(String sql, NamedParameterExpander namedParameters,
+			ReactiveDataAccessStrategy dataAccessStrategy, Map<String, SettableValue> byName,
+			Map<Integer, SettableValue> byIndex) {
+
+		this( //
+				namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(), new MapBindParameterSource(byName)), //
+				byName, //
+				byIndex //
+		);
 	}
 
 	@Override
@@ -44,7 +57,7 @@ public class PrameterbindingPreparedOperation implements PreparedOperation<Binda
 
 	@Override
 	public Statement bind(Statement to) {
-		return null;
+		throw new UnsupportedOperationException("we don't do that here");
 	}
 
 	@Override
@@ -63,14 +76,13 @@ public class PrameterbindingPreparedOperation implements PreparedOperation<Binda
 
 		bindByIndex(statement, byIndex);
 
-		return statement;	}
+		return statement;
+	}
 
 	@Override
 	public String toQuery() {
-		return null;
+		return operation.toQuery();
 	}
-
-
 
 	private static void bindByName(Statement statement, Map<String, SettableValue> byName) {
 

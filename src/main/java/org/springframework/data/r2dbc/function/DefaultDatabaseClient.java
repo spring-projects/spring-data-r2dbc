@@ -337,44 +337,8 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 			if (sqlSupplier instanceof PreparedOperation<?>) {
 				pop = ((PreparedOperation<?>) sqlSupplier);
 			} else {
-				pop = new PrameterbindingPreparedOperation(namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(),
-						new MapBindParameterSource(byName)), byName, byIndex);
+				pop = new ParameterbindingPreparedOperation(sql, namedParameters, dataAccessStrategy, byName, byIndex);
 			}
-
-
-
-			Function<Connection, Statement> executeFunction = it -> {
-
-				if (logger.isDebugEnabled()) {
-					logger.debug("Executing SQL statement [" + sql + "]");
-				}
-
-				if (sqlSupplier instanceof PreparedOperation<?>) {
-					return ((PreparedOperation<?>) sqlSupplier).bind(it.createStatement(sql));
-				}
-
-				BindableOperation operation = namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(),
-						new MapBindParameterSource(byName));
-
-				if (logger.isTraceEnabled()) {
-					logger.trace("Expanded SQL [" + operation.toQuery() + "]");
-				}
-
-				Statement statement = it.createStatement(operation.toQuery());
-
-				byName.forEach((name, o) -> {
-
-					if (o.getValue() != null) {
-						operation.bind(statement, name, o.getValue());
-					} else {
-						operation.bindNull(statement, name, o.getType());
-					}
-				});
-
-				bindByIndex(statement, byIndex);
-
-				return statement;
-			};
 
 			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(pop.bind(it).execute());
 
