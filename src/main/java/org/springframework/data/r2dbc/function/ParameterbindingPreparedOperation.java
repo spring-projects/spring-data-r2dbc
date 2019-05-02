@@ -56,7 +56,7 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 	}
 
 	@Override
-	public Statement bind(Connection connection) {
+	public Statement createBoundStatement(Connection connection) {
 
 		Statement statement = connection.createStatement(operation.toQuery());
 

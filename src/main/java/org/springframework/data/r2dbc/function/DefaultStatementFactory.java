@@ -472,7 +472,7 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 
 		@Override
-		public Statement bind(Connection connection) {
+		public Statement createBoundStatement(Connection connection) {
 
 			// TODO add back logging
 //			if (logger.isDebugEnabled()) {

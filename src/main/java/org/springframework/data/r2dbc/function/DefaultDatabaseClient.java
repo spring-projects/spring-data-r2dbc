@@ -340,7 +340,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 				pop = new ParameterbindingPreparedOperation(sql, namedParameters, dataAccessStrategy, byName, byIndex);
 			}
 
-			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(pop.bind(it).execute());
+			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(pop.createBoundStatement(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
 					sql, //
@@ -883,7 +883,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 						byName.forEach(it::bind);
 					});
 
-			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.bind(it).execute());
+			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.createBoundStatement(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
 					operation.toQuery(), //
@@ -994,7 +994,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 						});
 					});
 
-			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.bind(it).execute());
+			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(operation.createBoundStatement(it).execute());
 
 			return new DefaultSqlResult<>(DefaultDatabaseClient.this, //
 					operation.toQuery(), //

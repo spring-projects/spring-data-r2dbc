@@ -45,5 +45,5 @@ public interface PreparedOperation<T> extends QueryOperation {
 	 * @param connection the {@link Connection} used for constructing a statement
 	 * @return the bound statement.
 	 */
-	Statement bind(Connection connection);
+	Statement createBoundStatement(Connection connection);
 }
