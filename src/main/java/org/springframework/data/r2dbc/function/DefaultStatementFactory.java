@@ -17,6 +17,7 @@ package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
+import kotlin.internal.LowPriorityInOverloadResolution;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.r2dbc.dialect.BindMarker;
@@ -362,6 +364,7 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 	}
 
+
 	/**
 	 * Value object holding value and {@code NULL} bindings.
 	 *
@@ -412,13 +415,75 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 	}
 
+
+	static abstract class PreparedOperationSupport<T> implements PreparedOperation<T> {
+
+		private Function<String, String> sqlFilter = s -> s;
+		private Function<Binding, Binding> bindingFilter = b -> b;
+
+
+		abstract protected String createBaseSql();
+
+		protected abstract Binding getBaseBinding();
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.r2dbc.function.QueryOperation#toQuery()
+		 */
+		@Override
+		public String toQuery() {
+
+			return sqlFilter.apply(createBaseSql());
+		}
+		/*
+		 * (non-Javadoc)
+		 * @see org.springframework.data.r2dbc.function.PreparedOperation#bind(io.r2dbc.spi.Statement)
+		 */
+		protected Statement bind(Statement to) {
+
+			bindingFilter.apply(getBaseBinding()).apply(to);
+			return to;
+		}
+
+
+		@Override
+		public Statement createBoundStatement(Connection connection) {
+
+			// TODO add back logging
+//			if (logger.isDebugEnabled()) {
+//				logger.debug("Executing SQL statement [" + sql + "]");
+//			}
+
+			return bind(connection.createStatement(toQuery()));
+		}
+
+		@Override
+		public void addSqlFilter(Function<String, String> filter) {
+
+			Assert.notNull(filter, "Filter must not be null.");
+
+			sqlFilter = filter;
+
+		}
+
+		@Override
+		public void addBindingFilter(Function<Binding, Binding> filter) {
+
+			Assert.notNull(filter, "Filter must not be null.");
+
+			bindingFilter = filter;
+		}
+
+	}
+
+
 	/**
 	 * Default implementation of {@link PreparedOperation}.
 	 *
 	 * @param <T>
 	 */
 	@RequiredArgsConstructor
-	static class DefaultPreparedOperation<T> implements PreparedOperation<T> {
+	static class DefaultPreparedOperation<T> extends PreparedOperationSupport<T> {
 
 		private final T source;
 		private final RenderContext renderContext;
@@ -433,13 +498,8 @@ class DefaultStatementFactory implements StatementFactory {
 			return this.source;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.r2dbc.function.QueryOperation#toQuery()
-		 */
 		@Override
-		public String toQuery() {
-
+		protected String createBaseSql() {
 			SqlRenderer sqlRenderer = SqlRenderer.create(renderContext);
 
 			if (this.source instanceof Select) {
@@ -461,25 +521,9 @@ class DefaultStatementFactory implements StatementFactory {
 			throw new IllegalStateException("Cannot render " + this.getSource());
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * @see org.springframework.data.r2dbc.function.PreparedOperation#bind(io.r2dbc.spi.Statement)
-		 */
-		protected Statement bind(Statement to) {
-
-			binding.apply(to);
-			return to;
-		}
-
 		@Override
-		public Statement createBoundStatement(Connection connection) {
-
-			// TODO add back logging
-//			if (logger.isDebugEnabled()) {
-//				logger.debug("Executing SQL statement [" + sql + "]");
-//			}
-
-			return bind(connection.createStatement(toQuery()));
+		protected Binding getBaseBinding() {
+			return binding;
 		}
 	}
 }

@@ -19,6 +19,7 @@ import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 
 import java.util.Map;
+import java.util.function.Function;
 
 import org.springframework.data.r2dbc.domain.SettableValue;
 
@@ -64,6 +65,16 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 		bindByIndex(statement, byIndex);
 
 		return statement;
+	}
+
+	@Override
+	public void addSqlFilter(Function<String, String> filter) {
+
+	}
+
+	@Override
+	public void addBindingFilter(Function<DefaultStatementFactory.Binding, DefaultStatementFactory.Binding> filter) {
+
 	}
 
 	@Override

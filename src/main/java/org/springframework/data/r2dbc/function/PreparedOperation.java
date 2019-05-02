@@ -18,6 +18,7 @@ package org.springframework.data.r2dbc.function;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -40,10 +41,15 @@ public interface PreparedOperation<T> extends QueryOperation {
 	T getSource();
 
 	/**
-	 * Bind query parameters to a {@link Statement}.
+	 * create a {@link Statement} from the generated SQL after applying the SQL filter and then applying the
+	 * {@link org.springframework.data.r2dbc.function.DefaultStatementFactory.Binding} after filtering those as well.
 	 *
 	 * @param connection the {@link Connection} used for constructing a statement
 	 * @return the bound statement.
 	 */
 	Statement createBoundStatement(Connection connection);
+
+	void addSqlFilter(Function<String, String> filter);
+
+	void addBindingFilter(Function<DefaultStatementFactory.Binding, DefaultStatementFactory.Binding> filter);
 }
