@@ -112,18 +112,19 @@ class DefaultStatementFactory implements StatementFactory {
 								.add(new Bindings.IndexedSingleBinding( //
 										((IndexedBindMarker) bindMarker).getIndex(), //
 										settableValue) //
-								);
+						);
 					}
 				});
 
 		binding.getValues().forEach( //
 				(bindMarker, value) -> {
-					singleBindings //
-							.add(new Bindings.NamedSingleBinding<>( //
-									bindMarker.getPlaceholder(), //
-									value instanceof SettableValue ? (SettableValue) value
-											: SettableValue.from(value)) //
-					);
+					if (bindMarker instanceof IndexedBindMarker) {
+						singleBindings //
+								.add(new Bindings.IndexedSingleBinding( //
+										((IndexedBindMarker) bindMarker).getIndex(), //
+										value instanceof SettableValue ? (SettableValue) value : SettableValue.from(value)) //
+						);
+					}
 				});
 
 		return new Bindings(singleBindings);

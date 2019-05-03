@@ -63,9 +63,10 @@ public class Bindings {
 
 			if (value.isEmpty()) {
 				statement.bindNull(identifier, value.getType());
+			} else {
+				statement.bind(identifier, value.getValue());
 			}
 
-			statement.bind(identifier, value);
 		}
 
 		@Override
@@ -86,7 +87,7 @@ public class Bindings {
 			if (value.isEmpty()) {
 				statement.bindNull((int) identifier, value.getType());
 			} else {
-				statement.bind((int) identifier, value);
+				statement.bind((int) identifier, value.getValue());
 			}
 		}
 
