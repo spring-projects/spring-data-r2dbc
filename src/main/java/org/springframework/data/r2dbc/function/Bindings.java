@@ -16,6 +16,7 @@
 package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Statement;
+import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.util.List;
@@ -33,23 +34,22 @@ public class Bindings {
 		this.bindings = bindings;
 	}
 
+	@RequiredArgsConstructor
+	public static abstract class SingleBinding<T> {
 
-	@Value
-	public static  abstract class SingleBinding<T> {
-
-		T identifier;
-		SettableValue value;
+		final T identifier;
+		final SettableValue value;
 
 		public abstract void bindTo(Statement statement);
 
-		public abstract  boolean isIndexed();
+		public abstract boolean isIndexed();
 
 		public final boolean isNamed() {
 			return !isIndexed();
 		}
 	}
 
-	public static class NamedSingleBinding<T> extends SingleBinding<T>{
+	public static class NamedSingleBinding<T> extends SingleBinding<T> {
 
 		public NamedSingleBinding(T identifier, SettableValue value) {
 			super(identifier, value);
@@ -58,11 +58,11 @@ public class Bindings {
 		@Override
 		public void bindTo(Statement statement) {
 
-			if (getValue().isEmpty()) {
-				statement.bindNull(getIdentifier(), getValue().getType());
+			if (value.isEmpty()) {
+				statement.bindNull(identifier, value.getType());
 			}
 
-			statement.bind(getIdentifier(), getValue());
+			statement.bind(identifier, value);
 		}
 
 		@Override
@@ -71,7 +71,7 @@ public class Bindings {
 		}
 	}
 
-	public static class IndexedSingleBinding extends SingleBinding<Integer>{
+	public static class IndexedSingleBinding extends SingleBinding<Integer> {
 
 		public IndexedSingleBinding(Integer identifier, SettableValue value) {
 			super(identifier, value);
@@ -80,23 +80,24 @@ public class Bindings {
 		@Override
 		public void bindTo(Statement statement) {
 
-			if (getValue().isEmpty()) {
-				statement.bindNull((int)getIdentifier(), getValue().getType());
+			if (value.isEmpty()) {
+				statement.bindNull((int) identifier, value.getType());
 			}
 
-			statement.bind((int)getIdentifier(), getValue());
+			statement.bind((int) identifier, value);
 		}
+
 		@Override
 		public boolean isIndexed() {
 			return true;
 		}
 	}
 
-	public static class NamedExpandedSingleBinding<T> extends SingleBinding<T>{
+	public static class NamedExpandedSingleBinding extends SingleBinding<String> {
 
 		private final BindableOperation operation;
 
-		public NamedExpandedSingleBinding(T identifier, SettableValue value, BindableOperation operation) {
+		public NamedExpandedSingleBinding(String identifier, SettableValue value, BindableOperation operation) {
 
 			super(identifier, value);
 
@@ -106,10 +107,10 @@ public class Bindings {
 		@Override
 		public void bindTo(Statement statement) {
 
-			if (getValue() != null) {
-				operation.bind(statement,getIdentifier(), getValue());
+			if (value != null) {
+				operation.bind(statement, identifier, value);
 			} else {
-				operation.bindNull(statement, getIdentifier(), getValue().getType());
+				operation.bindNull(statement, identifier, value.getType());
 			}
 		}
 
