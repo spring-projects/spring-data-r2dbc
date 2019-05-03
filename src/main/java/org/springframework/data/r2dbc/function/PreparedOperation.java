@@ -51,5 +51,5 @@ public interface PreparedOperation<T> extends QueryOperation {
 
 	void addSqlFilter(Function<String, String> filter);
 
-	void addBindingFilter(Function<DefaultStatementFactory.Binding, DefaultStatementFactory.Binding> filter);
+	void addBindingFilter(Function<Bindings, Bindings> filter);
 }

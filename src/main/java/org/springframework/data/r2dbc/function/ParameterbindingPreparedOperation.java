@@ -73,7 +73,7 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 	}
 
 	@Override
-	public void addBindingFilter(Function<DefaultStatementFactory.Binding, DefaultStatementFactory.Binding> filter) {
+	public void addBindingFilter(Function<Bindings, Bindings> filter) {
 
 	}
 

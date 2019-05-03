@@ -17,7 +17,6 @@ package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Statement;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 import java.util.List;
 
@@ -32,6 +31,10 @@ public class Bindings {
 
 	public Bindings(List<SingleBinding> bindings) {
 		this.bindings = bindings;
+	}
+
+	public void apply(Statement statement) {
+		bindings.forEach(sb -> sb.bindTo(statement));
 	}
 
 	@RequiredArgsConstructor
@@ -82,9 +85,9 @@ public class Bindings {
 
 			if (value.isEmpty()) {
 				statement.bindNull((int) identifier, value.getType());
+			} else {
+				statement.bind((int) identifier, value);
 			}
-
-			statement.bind((int) identifier, value);
 		}
 
 		@Override

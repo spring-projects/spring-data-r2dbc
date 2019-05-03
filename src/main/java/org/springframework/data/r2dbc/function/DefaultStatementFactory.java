@@ -17,7 +17,6 @@ package org.springframework.data.r2dbc.function;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
-import kotlin.internal.LowPriorityInOverloadResolution;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -32,26 +31,14 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.r2dbc.dialect.BindMarker;
 import org.springframework.data.r2dbc.dialect.BindMarkers;
 import org.springframework.data.r2dbc.dialect.Dialect;
+import org.springframework.data.r2dbc.dialect.IndexedBindMarker;
 import org.springframework.data.r2dbc.domain.SettableValue;
-import org.springframework.data.relational.core.sql.AssignValue;
-import org.springframework.data.relational.core.sql.Assignment;
-import org.springframework.data.relational.core.sql.Column;
-import org.springframework.data.relational.core.sql.Condition;
-import org.springframework.data.relational.core.sql.Delete;
-import org.springframework.data.relational.core.sql.DeleteBuilder;
-import org.springframework.data.relational.core.sql.Expression;
-import org.springframework.data.relational.core.sql.Insert;
-import org.springframework.data.relational.core.sql.SQL;
-import org.springframework.data.relational.core.sql.Select;
-import org.springframework.data.relational.core.sql.SelectBuilder;
-import org.springframework.data.relational.core.sql.StatementBuilder;
-import org.springframework.data.relational.core.sql.Table;
-import org.springframework.data.relational.core.sql.Update;
-import org.springframework.data.relational.core.sql.UpdateBuilder;
+import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.render.RenderContext;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.lang.Nullable;
@@ -104,8 +91,42 @@ class DefaultStatementFactory implements StatementFactory {
 				select = selectBuilder.build();
 			}
 
-			return new DefaultPreparedOperation<>(select, renderContext, binding);
+			return new DefaultPreparedOperation<>( //
+					select, //
+					renderContext, //
+					createBindings(binding) //
+			);
 		});
+	}
+
+	@NotNull
+	private static Bindings createBindings(Binding binding) {
+
+		List<Bindings.SingleBinding> singleBindings = new ArrayList<>();
+
+		binding.getNulls().forEach( //
+				(bindMarker, settableValue) -> {
+
+					if (bindMarker instanceof IndexedBindMarker) {
+						singleBindings //
+								.add(new Bindings.IndexedSingleBinding( //
+										((IndexedBindMarker) bindMarker).getIndex(), //
+										settableValue) //
+								);
+					}
+				});
+
+		binding.getValues().forEach( //
+				(bindMarker, value) -> {
+					singleBindings //
+							.add(new Bindings.NamedSingleBinding<>( //
+									bindMarker.getPlaceholder(), //
+									value instanceof SettableValue ? (SettableValue) value
+											: SettableValue.from(value)) //
+					);
+				});
+
+		return new Bindings(singleBindings);
 	}
 
 	/*
@@ -152,7 +173,7 @@ class DefaultStatementFactory implements StatementFactory {
 			Insert insert = StatementBuilder.insert().into(table).columns(table.columns(binderBuilder.bindings.keySet()))
 					.values(expressions).build();
 
-			return new DefaultPreparedOperation<Insert>(insert, renderContext, binding) {
+			return new DefaultPreparedOperation<Insert>(insert, renderContext, createBindings(binding)) {
 				@Override
 				public Statement bind(Statement to) {
 					return super.bind(to).returnGeneratedValues(generatedKeysNames.toArray(new String[0]));
@@ -206,7 +227,7 @@ class DefaultStatementFactory implements StatementFactory {
 				update = updateBuilder.build();
 			}
 
-			return new DefaultPreparedOperation<>(update, renderContext, binding);
+			return new DefaultPreparedOperation<>(update, renderContext, createBindings(binding));
 		});
 	}
 
@@ -244,7 +265,7 @@ class DefaultStatementFactory implements StatementFactory {
 				delete = deleteBuilder.build();
 			}
 
-			return new DefaultPreparedOperation<>(delete, renderContext, binding);
+			return new DefaultPreparedOperation<>(delete, renderContext, createBindings(binding));
 		});
 	}
 
@@ -364,7 +385,6 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 	}
 
-
 	/**
 	 * Value object holding value and {@code NULL} bindings.
 	 *
@@ -415,16 +435,14 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 	}
 
-
 	static abstract class PreparedOperationSupport<T> implements PreparedOperation<T> {
 
 		private Function<String, String> sqlFilter = s -> s;
-		private Function<Binding, Binding> bindingFilter = b -> b;
-
+		private Function<Bindings, Bindings> bindingFilter = b -> b;
 
 		abstract protected String createBaseSql();
 
-		protected abstract Binding getBaseBinding();
+		protected abstract Bindings getBaseBinding();
 
 		/*
 		 * (non-Javadoc)
@@ -435,6 +453,7 @@ class DefaultStatementFactory implements StatementFactory {
 
 			return sqlFilter.apply(createBaseSql());
 		}
+
 		/*
 		 * (non-Javadoc)
 		 * @see org.springframework.data.r2dbc.function.PreparedOperation#bind(io.r2dbc.spi.Statement)
@@ -445,14 +464,13 @@ class DefaultStatementFactory implements StatementFactory {
 			return to;
 		}
 
-
 		@Override
 		public Statement createBoundStatement(Connection connection) {
 
 			// TODO add back logging
-//			if (logger.isDebugEnabled()) {
-//				logger.debug("Executing SQL statement [" + sql + "]");
-//			}
+			// if (logger.isDebugEnabled()) {
+			// logger.debug("Executing SQL statement [" + sql + "]");
+			// }
 
 			return bind(connection.createStatement(toQuery()));
 		}
@@ -467,7 +485,7 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 
 		@Override
-		public void addBindingFilter(Function<Binding, Binding> filter) {
+		public void addBindingFilter(Function<Bindings, Bindings> filter) {
 
 			Assert.notNull(filter, "Filter must not be null.");
 
@@ -475,7 +493,6 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 
 	}
-
 
 	/**
 	 * Default implementation of {@link PreparedOperation}.
@@ -487,7 +504,7 @@ class DefaultStatementFactory implements StatementFactory {
 
 		private final T source;
 		private final RenderContext renderContext;
-		private final Binding binding;
+		private final Bindings bindings;
 
 		/*
 		 * (non-Javadoc)
@@ -522,8 +539,8 @@ class DefaultStatementFactory implements StatementFactory {
 		}
 
 		@Override
-		protected Binding getBaseBinding() {
-			return binding;
+		protected Bindings getBaseBinding() {
+			return bindings;
 		}
 	}
 }
