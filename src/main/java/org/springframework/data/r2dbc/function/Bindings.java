@@ -94,18 +94,23 @@ public class Bindings {
 
 	public static class NamedExpandedSingleBinding<T> extends SingleBinding<T>{
 
-		public NamedExpandedSingleBinding(T identifier, SettableValue value) {
+		private final BindableOperation operation;
+
+		public NamedExpandedSingleBinding(T identifier, SettableValue value, BindableOperation operation) {
+
 			super(identifier, value);
+
+			this.operation = operation;
 		}
 
 		@Override
 		public void bindTo(Statement statement) {
 
-			if (getValue().isEmpty()) {
-				statement.bindNull(getIdentifier(), getValue().getType());
+			if (getValue() != null) {
+				operation.bind(statement,getIdentifier(), getValue());
+			} else {
+				operation.bindNull(statement, getIdentifier(), getValue().getType());
 			}
-
-			statement.bind(getIdentifier(), getValue());
 		}
 
 		@Override
@@ -113,27 +118,4 @@ public class Bindings {
 			return false;
 		}
 	}
-
-	public static class IndexedExpandedSingleBinding extends SingleBinding<Integer>{
-
-		public IndexedExpandedSingleBinding(Integer identifier, SettableValue value) {
-			super(identifier, value);
-		}
-
-		@Override
-		public void bindTo(Statement statement) {
-
-			if (getValue().isEmpty()) {
-				statement.bindNull((int)getIdentifier(), getValue().getType());
-			}
-
-			statement.bind((int)getIdentifier(), getValue());
-		}
-		@Override
-		public boolean isIndexed() {
-			return true;
-		}
-	}
-
-
 }
