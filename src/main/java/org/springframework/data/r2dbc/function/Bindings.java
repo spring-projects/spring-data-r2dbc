@@ -18,9 +18,9 @@ package org.springframework.data.r2dbc.function;
 import io.r2dbc.spi.Statement;
 import lombok.Value;
 
-import org.springframework.data.r2dbc.domain.SettableValue;
-
 import java.util.List;
+
+import org.springframework.data.r2dbc.domain.SettableValue;
 
 /**
  * @author Jens Schauder
@@ -35,20 +35,105 @@ public class Bindings {
 
 
 	@Value
-	static public abstract class SingleBinding<T> {
+	public static  abstract class SingleBinding<T> {
 
 		T identifier;
 		SettableValue value;
 
 		public abstract void bindTo(Statement statement);
 
-		public boolean isIndexed() {
-			return (identifier instanceof Number);
-		}
+		public abstract  boolean isIndexed();
 
-		public boolean isNamed() {
+		public final boolean isNamed() {
 			return !isIndexed();
 		}
 	}
+
+	public static class NamedSingleBinding<T> extends SingleBinding<T>{
+
+		public NamedSingleBinding(T identifier, SettableValue value) {
+			super(identifier, value);
+		}
+
+		@Override
+		public void bindTo(Statement statement) {
+
+			if (getValue().isEmpty()) {
+				statement.bindNull(getIdentifier(), getValue().getType());
+			}
+
+			statement.bind(getIdentifier(), getValue());
+		}
+
+		@Override
+		public boolean isIndexed() {
+			return false;
+		}
+	}
+
+	public static class IndexedSingleBinding extends SingleBinding<Integer>{
+
+		public IndexedSingleBinding(Integer identifier, SettableValue value) {
+			super(identifier, value);
+		}
+
+		@Override
+		public void bindTo(Statement statement) {
+
+			if (getValue().isEmpty()) {
+				statement.bindNull((int)getIdentifier(), getValue().getType());
+			}
+
+			statement.bind((int)getIdentifier(), getValue());
+		}
+		@Override
+		public boolean isIndexed() {
+			return true;
+		}
+	}
+
+	public static class NamedExpandedSingleBinding<T> extends SingleBinding<T>{
+
+		public NamedExpandedSingleBinding(T identifier, SettableValue value) {
+			super(identifier, value);
+		}
+
+		@Override
+		public void bindTo(Statement statement) {
+
+			if (getValue().isEmpty()) {
+				statement.bindNull(getIdentifier(), getValue().getType());
+			}
+
+			statement.bind(getIdentifier(), getValue());
+		}
+
+		@Override
+		public boolean isIndexed() {
+			return false;
+		}
+	}
+
+	public static class IndexedExpandedSingleBinding extends SingleBinding<Integer>{
+
+		public IndexedExpandedSingleBinding(Integer identifier, SettableValue value) {
+			super(identifier, value);
+		}
+
+		@Override
+		public void bindTo(Statement statement) {
+
+			if (getValue().isEmpty()) {
+				statement.bindNull((int)getIdentifier(), getValue().getType());
+			}
+
+			statement.bind((int)getIdentifier(), getValue());
+		}
+		@Override
+		public boolean isIndexed() {
+			return true;
+		}
+	}
+
 
 }
