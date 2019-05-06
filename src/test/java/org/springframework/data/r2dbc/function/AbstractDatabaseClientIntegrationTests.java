@@ -100,7 +100,7 @@ public abstract class AbstractDatabaseClientIntegrationTests extends R2dbcIntegr
 
 		DatabaseClient databaseClient = DatabaseClient.create(connectionFactory);
 
-		databaseClient.execute().sql(getInsertIntoLegosetStatement()) //
+		databaseClient.execute(getInsertIntoLegosetStatement()) //
 				.bind("id", 42055) //
 				.bind("name", "SCHAUFELRADBAGGER") //
 				.bindNull("manual", Integer.class) //
@@ -119,7 +119,7 @@ public abstract class AbstractDatabaseClientIntegrationTests extends R2dbcIntegr
 
 		executeInsert();
 
-		databaseClient.execute().sql(getInsertIntoLegosetStatement()) //
+		databaseClient.execute(getInsertIntoLegosetStatement()) //
 				.bind(0, 42055) //
 				.bind(1, "SCHAUFELRADBAGGER") //
 				.bindNull(2, Integer.class) //
@@ -138,7 +138,7 @@ public abstract class AbstractDatabaseClientIntegrationTests extends R2dbcIntegr
 
 		DatabaseClient databaseClient = DatabaseClient.create(connectionFactory);
 
-		databaseClient.execute().sql("SELECT id, name, manual FROM legoset") //
+		databaseClient.execute("SELECT id, name, manual FROM legoset") //
 				.as(LegoSet.class) //
 				.fetch().all() //
 				.as(StepVerifier::create) //

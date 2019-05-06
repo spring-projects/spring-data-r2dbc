@@ -59,6 +59,38 @@ public interface DatabaseClient {
 	InsertIntoSpec insert();
 
 	/**
+	 * Specify a static {@code sql} string to execute. Contract for specifying a SQL call along with options leading to
+	 * the exchange. The SQL string can contain either native parameter bind markers (e.g. {@literal $1, $2} for Postgres,
+	 * {@literal @P0, @P1} for SQL Server) or named parameters (e.g. {@literal :foo, :bar}) when
+	 * {@link NamedParameterExpander} is enabled.
+	 *
+	 * @see NamedParameterExpander
+	 * @see DatabaseClient.Builder#namedParameters(NamedParameterExpander)
+	 * @param sql must not be {@literal null} or empty.
+	 * @return a new {@link GenericExecuteSpec}.
+	 * @see NamedParameterExpander
+	 * @see DatabaseClient.Builder#namedParameters(NamedParameterExpander)
+	 */
+	GenericExecuteSpec execute(String sql);
+
+	/**
+	 * Specify a {@link Supplier SQL supplier} that provides SQL to execute. Contract for specifying a SQL call along with
+	 * options leading to the exchange. The SQL string can contain either native parameter bind markers (e.g.
+	 * {@literal $1, $2} for Postgres, {@literal @P0, @P1} for SQL Server) or named parameters (e.g.
+	 * {@literal :foo, :bar}) when {@link NamedParameterExpander} is enabled.
+	 * <p>
+	 * Accepts {@link PreparedOperation} as SQL and binding {@link Supplier}.
+	 * </p>
+	 *
+	 * @param sqlSupplier must not be {@literal null}.
+	 * @return a new {@link GenericExecuteSpec}.
+	 * @see NamedParameterExpander
+	 * @see DatabaseClient.Builder#namedParameters(NamedParameterExpander)
+	 * @see PreparedOperation
+	 */
+	GenericExecuteSpec execute(Supplier<String> sqlSupplier);
+
+	/**
 	 * Return a builder to mutate properties of this database client.
 	 */
 	DatabaseClient.Builder mutate();
@@ -145,7 +177,9 @@ public interface DatabaseClient {
 	 *
 	 * @see NamedParameterExpander
 	 * @see DatabaseClient.Builder#namedParameters(NamedParameterExpander)
+	 * @deprecated use {@code DatabaseClient.execute(…)} directly.
 	 */
+	@Deprecated
 	interface SqlSpec {
 
 		/**
@@ -154,6 +188,7 @@ public interface DatabaseClient {
 		 * @param sql must not be {@literal null} or empty.
 		 * @return a new {@link GenericExecuteSpec}.
 		 */
+		@Deprecated
 		GenericExecuteSpec sql(String sql);
 
 		/**
@@ -163,6 +198,7 @@ public interface DatabaseClient {
 		 * @return a new {@link GenericExecuteSpec}.
 		 * @see PreparedOperation
 		 */
+		@Deprecated
 		GenericExecuteSpec sql(Supplier<String> sqlSupplier);
 	}
 

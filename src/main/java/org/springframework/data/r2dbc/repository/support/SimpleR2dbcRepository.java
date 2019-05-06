@@ -85,7 +85,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 			binder.filterBy(idColumnName, SettableValue.from(id));
 		});
 
-		return databaseClient.execute().sql(operation).as(entity.getJavaType()) //
+		return databaseClient.execute(operation).as(entity.getJavaType()) //
 				.then() //
 				.thenReturn(objectToSave);
 	}
@@ -130,7 +130,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 					binder.filterBy(idColumnName, SettableValue.from(id));
 				});
 
-		return databaseClient.execute().sql(operation) //
+		return databaseClient.execute(operation) //
 				.as(entity.getJavaType()) //
 				.fetch() //
 				.one();
@@ -159,7 +159,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 					binder.filterBy(idColumnName, SettableValue.from(id));
 				});
 
-		return databaseClient.execute().sql(operation) //
+		return databaseClient.execute(operation) //
 				.map((r, md) -> r) //
 				.first() //
 				.hasElement();
@@ -214,7 +214,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 						binder.filterBy(idColumnName, SettableValue.from(ids));
 					});
 
-			return databaseClient.execute().sql(operation).as(entity.getJavaType()).fetch().all();
+			return databaseClient.execute(operation).as(entity.getJavaType()).fetch().all();
 		});
 	}
 
@@ -230,7 +230,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 				.from(table) //
 				.build();
 
-		return databaseClient.execute().sql(SqlRenderer.toString(select)) //
+		return databaseClient.execute(SqlRenderer.toString(select)) //
 				.map((r, md) -> r.get(0, Long.class)) //
 				.first() //
 				.defaultIfEmpty(0L);
@@ -249,7 +249,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 			binder.filterBy(getIdColumnName(), SettableValue.from(id));
 		});
 
-		return databaseClient.execute().sql(delete) //
+		return databaseClient.execute(delete) //
 				.fetch() //
 				.rowsUpdated() //
 				.then();
@@ -273,7 +273,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 				binder.filterBy(getIdColumnName(), SettableValue.from(ids));
 			});
 
-			return databaseClient.execute().sql(delete).then();
+			return databaseClient.execute(delete).then();
 		}).then();
 	}
 
@@ -319,7 +319,7 @@ public class SimpleR2dbcRepository<T, ID> implements ReactiveCrudRepository<T, I
 	@Override
 	public Mono<Void> deleteAll() {
 
-		return databaseClient.execute().sql(String.format("DELETE FROM %s", entity.getTableName())) //
+		return databaseClient.execute(String.format("DELETE FROM %s", entity.getTableName())) //
 				.then();
 	}
 
