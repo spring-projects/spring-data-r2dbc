@@ -440,10 +440,18 @@ class DefaultStatementFactory implements StatementFactory {
 
 		private Function<String, String> sqlFilter = s -> s;
 		private Function<Bindings, Bindings> bindingFilter = b -> b;
+		private final Bindings bindings;
+
+		protected PreparedOperationSupport(Bindings bindings) {
+
+			this.bindings = bindings;
+		}
 
 		abstract protected String createBaseSql();
 
-		protected abstract Bindings getBaseBinding();
+		Bindings getBaseBinding() {
+			return bindings;
+		};
 
 		/*
 		 * (non-Javadoc)
@@ -500,12 +508,18 @@ class DefaultStatementFactory implements StatementFactory {
 	 *
 	 * @param <T>
 	 */
-	@RequiredArgsConstructor
 	static class DefaultPreparedOperation<T> extends PreparedOperationSupport<T> {
 
 		private final T source;
 		private final RenderContext renderContext;
-		private final Bindings bindings;
+
+		DefaultPreparedOperation(T source, RenderContext renderContext, Bindings bindings) {
+
+			super(bindings);
+
+			this.source = source;
+			this.renderContext = renderContext;
+		}
 
 		/*
 		 * (non-Javadoc)
@@ -518,6 +532,7 @@ class DefaultStatementFactory implements StatementFactory {
 
 		@Override
 		protected String createBaseSql() {
+
 			SqlRenderer sqlRenderer = SqlRenderer.create(renderContext);
 
 			if (this.source instanceof Select) {
@@ -539,9 +554,5 @@ class DefaultStatementFactory implements StatementFactory {
 			throw new IllegalStateException("Cannot render " + this.getSource());
 		}
 
-		@Override
-		protected Bindings getBaseBinding() {
-			return bindings;
-		}
 	}
 }
