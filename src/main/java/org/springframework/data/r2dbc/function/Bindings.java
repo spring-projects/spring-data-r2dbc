@@ -52,28 +52,6 @@ public class Bindings {
 		}
 	}
 
-	public static class NamedSingleBinding<T> extends SingleBinding<T> {
-
-		public NamedSingleBinding(T identifier, SettableValue value) {
-			super(identifier, value);
-		}
-
-		@Override
-		public void bindTo(Statement statement) {
-
-			if (value.isEmpty()) {
-				statement.bindNull(identifier, value.getType());
-			} else {
-				statement.bind(identifier, value.getValue());
-			}
-
-		}
-
-		@Override
-		public boolean isIndexed() {
-			return false;
-		}
-	}
 
 	public static class IndexedSingleBinding extends SingleBinding<Integer> {
 

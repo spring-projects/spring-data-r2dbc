@@ -337,7 +337,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 			if (sqlSupplier instanceof PreparedOperation<?>) {
 				pop = ((PreparedOperation<?>) sqlSupplier);
 			} else {
-				pop = new ParameterbindingPreparedOperation(sql, namedParameters, dataAccessStrategy, byName, byIndex);
+				pop = new ExpandedPreparedOperation(sql, namedParameters, dataAccessStrategy, byName, byIndex);
 			}
 
 			Function<Connection, Flux<Result>> resultFunction = it -> Flux.from(pop.createBoundStatement(it).execute());

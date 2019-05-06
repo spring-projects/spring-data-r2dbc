@@ -18,37 +18,59 @@ package org.springframework.data.r2dbc.function;
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.Statement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import org.springframework.data.r2dbc.domain.SettableValue;
 
 /**
  * @author Jens Schauder
  */
-public class ParameterbindingPreparedOperation implements PreparedOperation<BindableOperation> {
+public class ExpandedPreparedOperation
+		extends DefaultStatementFactory.PreparedOperationSupport<BindableOperation> {
 
 	private final BindableOperation operation;
 	private final Map<String, SettableValue> byName;
 	private final Map<Integer, SettableValue> byIndex;
 
-	private ParameterbindingPreparedOperation(BindableOperation operation, Map<String, SettableValue> byName,
-			Map<Integer, SettableValue> byIndex) {
+	private ExpandedPreparedOperation(BindableOperation operation, Map<String, SettableValue> byName,
+									  Map<Integer, SettableValue> byIndex) {
+
+		super(createBindings(operation, byName, byIndex));
 
 		this.operation = operation;
 		this.byName = byName;
 		this.byIndex = byIndex;
 	}
 
-	ParameterbindingPreparedOperation(String sql, NamedParameterExpander namedParameters,
-			ReactiveDataAccessStrategy dataAccessStrategy, Map<String, SettableValue> byName,
+	private static Bindings createBindings(BindableOperation operation, Map<String, SettableValue> byName,
 			Map<Integer, SettableValue> byIndex) {
+
+		List<Bindings.SingleBinding> bindings = new ArrayList<>();
+
+		byName.forEach(
+				(identifier, settableValue) -> bindings.add(new Bindings.NamedExpandedSingleBinding(identifier, settableValue, operation)));
+
+		byIndex.forEach((identifier, settableValue) -> bindings.add(new Bindings.IndexedSingleBinding(identifier, settableValue)));
+
+		return new Bindings(bindings);
+	}
+
+	ExpandedPreparedOperation(String sql, NamedParameterExpander namedParameters,
+							  ReactiveDataAccessStrategy dataAccessStrategy, Map<String, SettableValue> byName,
+							  Map<Integer, SettableValue> byIndex) {
 
 		this( //
 				namedParameters.expand(sql, dataAccessStrategy.getBindMarkersFactory(), new MapBindParameterSource(byName)), //
 				byName, //
 				byIndex //
 		);
+	}
+
+	@Override
+	protected String createBaseSql() {
+		return toQuery();
 	}
 
 	@Override
@@ -68,27 +90,17 @@ public class ParameterbindingPreparedOperation implements PreparedOperation<Bind
 	}
 
 	@Override
-	public void addSqlFilter(Function<String, String> filter) {
-
-	}
-
-	@Override
-	public void addBindingFilter(Function<Bindings, Bindings> filter) {
-
-	}
-
-	@Override
 	public String toQuery() {
 		return operation.toQuery();
 	}
 
 	// todo that is a weird assymmetry between bindByName and bindByIndex
-	private  void bindByName(Statement statement, Map<String, SettableValue> byName) {
+	private void bindByName(Statement statement, Map<String, SettableValue> byName) {
 
 		byName.forEach((name, o) -> {
 
 			if (o.getValue() != null) {
-				operation.bind(statement,name, o.getValue());
+				operation.bind(statement, name, o.getValue());
 			} else {
 				operation.bindNull(statement, name, o.getType());
 			}
