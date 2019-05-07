@@ -77,7 +77,7 @@ public class MySqlTestSupport {
 		return Stream.of(suppliers).map(Supplier::get) //
 				.filter(ExternalDatabase::checkValidity) //
 				.findFirst() //
-				.orElse(ExternalDatabase.unavailable());
+				.orElse(ExternalDatabase.unavailable("mymsql"));
 	}
 
 	/**

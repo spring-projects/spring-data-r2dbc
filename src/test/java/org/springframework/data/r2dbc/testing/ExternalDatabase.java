@@ -15,17 +15,18 @@
  */
 package org.springframework.data.r2dbc.testing;
 
-import lombok.Builder;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Builder;
 import org.junit.AssumptionViolatedException;
 import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.util.StringUtils;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
@@ -49,9 +50,28 @@ public abstract class ExternalDatabase extends ExternalResource {
 	}
 
 	/**
+	 * Construct an absent database that is used as {@literal null} object if no database is available.
+	 *
+	 * @return an absent database.
+	 */
+	public static ExternalDatabase unavailable(String vendor) {
+		return new NoAvailableDatabase(vendor);
+	}
+
+	/**
 	 * @return hostname on which the database service runs.
 	 */
 	public abstract String getHostname();
+
+	private int getFailsafePort() {
+
+		try {
+			return getPort();
+		} catch (UnsupportedOperationException e) {
+		}
+
+		return -1;
+	}
 
 	/**
 	 * @return the post of the database service.
@@ -86,9 +106,10 @@ public abstract class ExternalDatabase extends ExternalResource {
 
 		if (!checkValidity()) {
 			throw new AssumptionViolatedException(
-					String.format("Cannot connect to %s:%d. Skipping tests.", getHostname(), getPort()));
+					String.format("Cannot connect to %s:%d. Skipping tests.", getHostname(), getFailsafePort()));
 		}
 	}
+
 
 	/**
 	 * Performs a test if the database can actually be reached.
@@ -101,7 +122,6 @@ public abstract class ExternalDatabase extends ExternalResource {
 
 			socket.connect(new InetSocketAddress(getHostname(), getPort()), Math.toIntExact(TimeUnit.SECONDS.toMillis(5)));
 			return true;
-
 		} catch (IOException e) {
 			LOG.debug("external database not available.", e);
 		}
@@ -153,8 +173,8 @@ public abstract class ExternalDatabase extends ExternalResource {
 		}
 
 		/* (non-Javadoc)
-		* @see org.springframework.data.jdbc.core.function.ExternalDatabase#getHostname()
-		*/
+		 * @see org.springframework.data.jdbc.core.function.ExternalDatabase#getHostname()
+		 */
 		@Override
 		public String getHostname() {
 			return hostname;
@@ -185,16 +205,16 @@ public abstract class ExternalDatabase extends ExternalResource {
 		}
 
 		/* (non-Javadoc)
-		* @see org.springframework.data.jdbc.core.function.ExternalDatabase#getDatabase()
-		*/
+		 * @see org.springframework.data.jdbc.core.function.ExternalDatabase#getDatabase()
+		 */
 		@Override
 		public String getDatabase() {
 			return database;
 		}
 
 		/* (non-Javadoc)
-		* @see org.springframework.data.jdbc.core.function.ExternalDatabase#getJdbcUrl()
-		*/
+		 * @see org.springframework.data.jdbc.core.function.ExternalDatabase#getJdbcUrl()
+		 */
 		@Override
 		public String getJdbcUrl() {
 			return jdbcUrl;
@@ -208,7 +228,13 @@ public abstract class ExternalDatabase extends ExternalResource {
 	 */
 	private static class NoAvailableDatabase extends ExternalDatabase {
 
-		private static final NoAvailableDatabase INSTANCE = new NoAvailableDatabase();
+		private static final NoAvailableDatabase INSTANCE = new NoAvailableDatabase(null);
+
+		private final String vendor;
+
+		public NoAvailableDatabase(@Nullable String vendor) {
+			this.vendor = vendor;
+		}
 
 		/* (non-Javadoc)
 		 * @see org.springframework.data.jdbc.core.function.ExternalDatabase#getPort()
@@ -223,7 +249,11 @@ public abstract class ExternalDatabase extends ExternalResource {
 		 */
 		@Override
 		public String getHostname() {
-			throw new UnsupportedOperationException(getClass().getSimpleName());
+
+			if (!StringUtils.hasText(vendor)) {
+				new UnsupportedOperationException(getClass().getSimpleName());
+			}
+			return vendor;
 		}
 
 		/* (non-Javadoc)
@@ -259,8 +289,8 @@ public abstract class ExternalDatabase extends ExternalResource {
 		}
 
 		/* (non-Javadoc)
-		* @see org.springframework.data.jdbc.core.function.ExternalDatabase#getJdbcUrl()
-		*/
+		 * @see org.springframework.data.jdbc.core.function.ExternalDatabase#getJdbcUrl()
+		 */
 		@Override
 		public String getJdbcUrl() {
 			throw new UnsupportedOperationException(getClass().getSimpleName());
