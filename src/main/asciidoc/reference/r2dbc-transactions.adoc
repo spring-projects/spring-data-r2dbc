@@ -37,6 +37,21 @@ https://docs.spring.io/spring/docs/current/spring-framework-reference/data-acces
 ====
 [source,java]
 ----
+@Configuration
+@EnableTransactionManagement                                              <1>
+class Config extends AbstractR2dbcConfiguration {
+
+  @Override
+  public ConnectionFactory connectionFactory() {
+    return // ...
+  }
+
+  @Bean
+  ReactiveTransactionManager txMgr(ConnectionFactory connectionFactory) { <2>
+    return new ConnectionFactoryTransactionManager(connectionFactory);
+  }
+}
+
 class MyService {
 
   private final DatabaseClient db;
@@ -44,7 +59,6 @@ class MyService {
   MyService(DatabaseClient db) {
     this.db = db;
   }
-
 
   @Transactional
   public Mono<Void> insertPerson() {
@@ -58,8 +72,10 @@ class MyService {
                     .bind("id", "joe")
                     .bind("name", "Joe")
                     .fetch().rowsUpdated())
-            .then();
+      .then();
   }
 }
 ----
+<1> Enable declarative transaction management.
+<2> Provide a `ReactiveTransactionManager` implementation to back reactive tansaction features.
 ====
