@@ -141,7 +141,7 @@ class DatabaseClientExtensionsTests {
 		}
 	}
 
-	@Test // gh-63
+	@Test // gh-122
 	fun selectFromSpecInto() {
 
 		val spec = mockk<DatabaseClient.SelectFromSpec>()
@@ -157,7 +157,7 @@ class DatabaseClientExtensionsTests {
 		}
 	}
 
-	@Test // gh-63
+	@Test // gh-122
 	fun deleteFromSpecInto() {
 
 		val spec = mockk<DatabaseClient.DeleteFromSpec>()

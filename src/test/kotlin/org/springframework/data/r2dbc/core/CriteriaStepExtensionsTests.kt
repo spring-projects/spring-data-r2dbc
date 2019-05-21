@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono
  */
 class CriteriaStepExtensionsTests {
 
-	@Test // gh-63
+	@Test // gh-122
 	fun eqIsCriteriaStep() {
 
 		val spec = mockk<Criteria.CriteriaStep>()
