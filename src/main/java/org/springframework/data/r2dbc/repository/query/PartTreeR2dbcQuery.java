@@ -10,7 +10,6 @@ import org.springframework.data.relational.repository.query.RelationalParameters
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Streamable;
-import org.springframework.util.Assert;
 
 /**
  * An {@link AbstractR2dbcQuery} implementation based on a {@link PartTree}.
@@ -21,7 +20,6 @@ import org.springframework.util.Assert;
  * @author Roman Chigvintsev
  */
 public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
-    private final ReactiveDataAccessStrategy dataAccessStrategy;
     private final RelationalParameters parameters;
     private final PartTree tree;
     private final R2dbcQueryCreator queryCreator;
@@ -39,8 +37,6 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
                               R2dbcConverter converter,
                               ReactiveDataAccessStrategy dataAccessStrategy) {
         super(method, databaseClient, converter);
-        Assert.notNull(dataAccessStrategy, "Data access strategy must not be null");
-        this.dataAccessStrategy = dataAccessStrategy;
         this.parameters = method.getParameters();
 
         RelationalEntityMetadata<?> entityMetadata = method.getEntityInformation();
@@ -48,7 +44,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
         try {
             this.tree = new PartTree(method.getName(), entityMetadata.getJavaType());
             validate(tree, parameters, method.getName());
-            this.queryCreator = new R2dbcQueryCreator(tree);
+            this.queryCreator = new R2dbcQueryCreator(tree, entityMetadata, dataAccessStrategy);
         } catch (Exception e) {
             String message = String.format("Failed to create query for method %s! %s", method, e.getMessage());
             throw new IllegalArgumentException(message, e);
