@@ -17,6 +17,7 @@ package org.springframework.data.r2dbc.mapping;
 
 import org.springframework.data.relational.core.mapping.NamingStrategy;
 import org.springframework.data.relational.core.mapping.RelationalMappingContext;
+import org.springframework.data.util.ReflectionUtils;
 import org.springframework.data.util.TypeInformation;
 
 /**
@@ -40,12 +41,17 @@ public class R2dbcMappingContext extends RelationalMappingContext {
 		super(namingStrategy);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mapping.context.AbstractMappingContext#shouldCreatePersistentEntityFor(org.springframework.data.util.TypeInformation)
 	 */
 	@Override
 	protected boolean shouldCreatePersistentEntityFor(TypeInformation<?> type) {
-		return !R2dbcSimpleTypeHolder.HOLDER.isSimpleType(type.getType());
+
+		if (R2dbcSimpleTypeHolder.HOLDER.isSimpleType(type.getType())) {
+			return false;
+		}
+
+		return !ReflectionUtils.isKotlinClass(type.getType()) || ReflectionUtils.isSupportedKotlinClass(type.getType());
 	}
 }
