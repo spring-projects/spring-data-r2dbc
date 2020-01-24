@@ -20,9 +20,9 @@ import org.springframework.data.util.Streamable;
  * @author Roman Chigvintsev
  */
 public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
+    private final ReactiveDataAccessStrategy dataAccessStrategy;
     private final RelationalParameters parameters;
     private final PartTree tree;
-    private final R2dbcQueryCreator queryCreator;
 
     /**
      * Creates new instance of this class with the given {@link R2dbcQueryMethod} and {@link DatabaseClient}.
@@ -37,14 +37,12 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
                               R2dbcConverter converter,
                               ReactiveDataAccessStrategy dataAccessStrategy) {
         super(method, databaseClient, converter);
+        this.dataAccessStrategy = dataAccessStrategy;
         this.parameters = method.getParameters();
 
-        RelationalEntityMetadata<?> entityMetadata = method.getEntityInformation();
-
         try {
-            this.tree = new PartTree(method.getName(), entityMetadata.getJavaType());
-            validate(tree, parameters, method.getName());
-            this.queryCreator = new R2dbcQueryCreator(tree, entityMetadata, dataAccessStrategy);
+            this.tree = new PartTree(method.getName(), method.getEntityInformation().getJavaType());
+            validate(this.tree, this.parameters, method.getName());
         } catch (Exception e) {
             String message = String.format("Failed to create query for method %s! %s", method, e.getMessage());
             throw new IllegalArgumentException(message, e);
@@ -53,7 +51,10 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 
     @Override
     protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
-        return queryCreator.createQuery(getDynamicSort(accessor));
+        RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
+        ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor);
+        return new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata, parameterMetadataProvider)
+                .createQuery(getDynamicSort(accessor));
     }
 
     private Sort getDynamicSort(RelationalParameterAccessor accessor) {
