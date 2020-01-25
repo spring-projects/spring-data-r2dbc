@@ -71,6 +71,16 @@ public class PartTreeR2dbcQueryIntegrationTests {
                 .isEqualTo("SELECT users.id, users.first_name FROM users WHERE users.first_name = ?");
     }
 
+    @Test
+    public void createsQueryWithIsNullCondition() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstName", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        BindableQuery bindableQuery = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[]{null})));
+        assertThat(bindableQuery.get())
+                .isEqualTo("SELECT users.id, users.first_name FROM users WHERE users.first_name IS NULL");
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
