@@ -4,11 +4,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
-import org.springframework.data.relational.core.sql.Column;
 import org.springframework.data.relational.core.sql.Condition;
+import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoin;
 import org.springframework.data.relational.core.sql.StatementBuilder;
 import org.springframework.data.relational.core.sql.Table;
+import org.springframework.data.relational.core.sql.render.RenderContext;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -34,9 +35,9 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
      * Creates new instance of this class with the given {@link PartTree},  {@link ReactiveDataAccessStrategy},
      * {@link RelationalEntityMetadata} and {@link ParameterMetadataProvider}.
      *
-     * @param tree part tree (must not be {@literal null})
-     * @param dataAccessStrategy data access strategy (must not be {@literal null})
-     * @param entityMetadata relational entity metadata (must not be {@literal null})
+     * @param tree                      part tree (must not be {@literal null})
+     * @param dataAccessStrategy        data access strategy (must not be {@literal null})
+     * @param entityMetadata            relational entity metadata (must not be {@literal null})
      * @param parameterMetadataProvider parameter metadata provider (must not be {@literal null})
      */
     public R2dbcQueryCreator(PartTree tree,
@@ -76,15 +77,15 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
      * Creates {@link BindableQuery} applying the given {@link Condition} and {@link Sort} definition.
      *
      * @param condition condition to be applied to query
-     * @param sort sort option to be applied to query (must not be {@literal null})
+     * @param sort      sort option to be applied to query (must not be {@literal null})
      * @return new instance of {@link BindableQuery}
      */
     @Override
     protected BindableQuery complete(Condition condition, Sort sort) {
         Table fromTable = Table.create(entityMetadata.getTableName());
-        List<Column> columns = fromTable.columns(dataAccessStrategy.getAllColumns(entityMetadata.getJavaType()));
+        List<? extends Expression> selectExpressions = getSelectionExpressions(fromTable);
+        SelectFromAndJoin selectBuilder = StatementBuilder.select(selectExpressions).from(fromTable);
 
-        SelectFromAndJoin selectBuilder = StatementBuilder.select(columns).from(fromTable);
         if (tree.isExistsProjection()) {
             selectBuilder.limit(1);
         }
@@ -93,7 +94,8 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
             selectBuilder.where(condition);
         }
 
-        SqlRenderer sqlRenderer = SqlRenderer.create();
+        RenderContext renderContext = dataAccessStrategy.getStatementMapper().getRenderContext();
+        SqlRenderer sqlRenderer = renderContext == null ? SqlRenderer.create() : SqlRenderer.create(renderContext);
         String sql = sqlRenderer.render(selectBuilder.build());
 
         return new BindableQuery() {
@@ -107,5 +109,12 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
                 return sql;
             }
         };
+    }
+
+    private List<? extends Expression> getSelectionExpressions(Table fromTable) {
+        if (tree.isExistsProjection()) {
+            return fromTable.columns(dataAccessStrategy.getIdentifierColumns(entityMetadata.getJavaType()));
+        }
+        return fromTable.columns(dataAccessStrategy.getAllColumns(entityMetadata.getJavaType()));
     }
 }

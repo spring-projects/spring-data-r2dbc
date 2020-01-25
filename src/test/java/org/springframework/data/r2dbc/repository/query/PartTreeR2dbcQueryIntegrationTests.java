@@ -23,6 +23,7 @@ import org.springframework.data.relational.repository.query.RelationalParameters
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.DefaultRepositoryMetadata;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
 
@@ -81,6 +82,16 @@ public class PartTreeR2dbcQueryIntegrationTests {
                 .isEqualTo("SELECT users.id, users.first_name FROM users WHERE users.first_name IS NULL");
     }
 
+    @Test
+    public void createsQueryWithLimitForExistsProjection() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("existsByFirstName", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        BindableQuery query = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[]{"Matthews"})));
+        assertThat(query.get())
+                .isEqualTo("SELECT users.id FROM users WHERE users.first_name = ? LIMIT 1");
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -93,6 +104,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
 
     private interface UserRepository extends Repository<User, Long> {
         Flux<User> findAllByFirstName(String firstName);
+
+        Mono<Boolean> existsByFirstName(String firstName);
     }
 
     @Table("users")
