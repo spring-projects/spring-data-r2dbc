@@ -80,7 +80,7 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
 
     @Override
     protected Condition and(Part part, Condition condition, Iterator<Object> iterator) {
-        throw new UnsupportedOperationException();
+        return condition.and(conditionFactory.createCondition(part));
     }
 
     @Override

@@ -50,6 +50,9 @@ import static org.mockito.Mockito.*;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PartTreeR2dbcQueryIntegrationTests {
+    private static final String TABLE = "users";
+    private static final String ALL_FIELDS = TABLE + ".id, " + TABLE + ".first_name, " + TABLE + ".last_name";
+
     @Mock
     private ConnectionFactory connectionFactory;
     @Mock
@@ -82,9 +85,9 @@ public class PartTreeR2dbcQueryIntegrationTests {
         R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstName", String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
-        BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"Matthews"}));
-        assertThat(bindableQuery.get())
-                .isEqualTo("SELECT users.id, users.first_name FROM users WHERE users.first_name = ?");
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"John"}));
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
     @Test
@@ -93,8 +96,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
         BindableQuery bindableQuery = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[]{null})));
-        assertThat(bindableQuery.get())
-                .isEqualTo("SELECT users.id, users.first_name FROM users WHERE users.first_name IS NULL");
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name IS NULL";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
     @Test
@@ -102,9 +105,20 @@ public class PartTreeR2dbcQueryIntegrationTests {
         R2dbcQueryMethod queryMethod = getQueryMethod("existsByFirstName", String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
-        BindableQuery query = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[]{"Matthews"})));
-        assertThat(query.get())
-                .isEqualTo("SELECT users.id FROM users WHERE users.first_name = ? LIMIT 1");
+        BindableQuery query = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[]{"John"})));
+        String expectedSql = "SELECT " + TABLE + ".id FROM " + TABLE + " WHERE " + TABLE + ".first_name = ? LIMIT 1";
+        assertThat(query.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByTwoStringAttributes() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findByLastNameAndFirstName", String.class, String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"Doe", "John"}));
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+                + " WHERE " + TABLE + ".last_name = ? AND " + TABLE + ".first_name = ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
@@ -120,6 +134,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
     private interface UserRepository extends Repository<User, Long> {
         Flux<User> findAllByFirstName(String firstName);
 
+        Flux<User> findByLastNameAndFirstName(String lastName, String firstName);
+
         Mono<Boolean> existsByFirstName(String firstName);
     }
 
@@ -129,5 +145,6 @@ public class PartTreeR2dbcQueryIntegrationTests {
         @Id
         private Long id;
         private String firstName;
+        private String lastName;
     }
 }
