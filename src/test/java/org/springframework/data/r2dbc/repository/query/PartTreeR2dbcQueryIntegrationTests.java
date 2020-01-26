@@ -121,6 +121,17 @@ public class PartTreeR2dbcQueryIntegrationTests {
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByOneOfTwoStringAttributes() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findByLastNameOrFirstName", String.class, String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"Doe", "John"}));
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+                + " WHERE " + TABLE + ".last_name = ? OR " + TABLE + ".first_name = ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -135,6 +146,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByFirstName(String firstName);
 
         Flux<User> findByLastNameAndFirstName(String lastName, String firstName);
+
+        Flux<User> findByLastNameOrFirstName(String lastName, String firstName);
 
         Mono<Boolean> existsByFirstName(String firstName);
     }
