@@ -17,7 +17,6 @@ package org.springframework.data.r2dbc.repository.query;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
-import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.data.relational.core.sql.Condition;
 import org.springframework.data.relational.core.sql.Expression;
@@ -32,18 +31,18 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.util.Assert;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * Implementation of {@link AbstractQueryCreator} that creates {@link BindableQuery} from a {@link PartTree}.
  *
  * @author Roman Chigvintsev
  */
-public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condition> {
+public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
     private final PartTree tree;
-    private final RelationalEntityMetadata<?> entityMetadata;
     private final ReactiveDataAccessStrategy dataAccessStrategy;
+    private final RelationalEntityMetadata<?> entityMetadata;
     private final ConditionFactory conditionFactory;
 
     /**
@@ -96,9 +95,9 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
      * @return new instance of {@link BindableQuery}
      */
     @Override
-    protected BindableQuery complete(Condition condition, Sort sort) {
+    protected String complete(Condition condition, Sort sort) {
         Table fromTable = Table.create(entityMetadata.getTableName());
-        List<? extends Expression> selectExpressions = getSelectionExpressions(fromTable);
+        Collection<? extends Expression> selectExpressions = getSelectionExpressions(fromTable);
         SelectFromAndJoin selectBuilder = StatementBuilder.select(selectExpressions).from(fromTable);
 
         if (tree.isExistsProjection()) {
@@ -111,22 +110,10 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<BindableQuery, Condi
 
         RenderContext renderContext = dataAccessStrategy.getStatementMapper().getRenderContext();
         SqlRenderer sqlRenderer = renderContext == null ? SqlRenderer.create() : SqlRenderer.create(renderContext);
-        String sql = sqlRenderer.render(selectBuilder.build());
-
-        return new BindableQuery() {
-            @Override
-            public <T extends DatabaseClient.BindSpec<T>> T bind(T bindSpec) {
-                return bindSpec;
-            }
-
-            @Override
-            public String get() {
-                return sql;
-            }
-        };
+        return sqlRenderer.render(selectBuilder.build());
     }
 
-    private List<? extends Expression> getSelectionExpressions(Table fromTable) {
+    private Collection<? extends Expression> getSelectionExpressions(Table fromTable) {
         if (tree.isExistsProjection()) {
             return fromTable.columns(dataAccessStrategy.getIdentifierColumns(entityMetadata.getJavaType()));
         }

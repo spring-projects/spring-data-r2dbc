@@ -78,14 +78,19 @@ class ParameterMetadataProvider {
      * Creates new instance of {@link ParameterMetadata} for the given {@link Part} and next {@link Parameter}.
      */
     public ParameterMetadata next(Part part) {
-        Assert.isTrue(bindableParameterIterator.hasNext(),
-                () -> String.format("No parameter available for part %s.", part));
+        Assert.isTrue(bindableParameterIterator.hasNext(), () -> String.format("No parameter available for part %s.", part));
         Parameter parameter = bindableParameterIterator.next();
-        String parameterName = getParameterName(parameter);
-        Class<?> parameterType = parameter.getType();
-        Object parameterValue = getParameterValue();
-        boolean isNullProperty = parameterValue == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType());
-        return new ParameterMetadata(parameterName, parameterType, isNullProperty);
+        String name = getParameterName(parameter);
+        Class<?> type = parameter.getType();
+        Object value = getParameterValue();
+        boolean isNullProperty = value == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType());
+        ParameterMetadata metadata = new ParameterMetadata(name, type, isNullProperty);
+        parameterMetadata.add(metadata);
+        return metadata;
+    }
+
+    public ParameterMetadata getParameterMetadata(int index) {
+        return parameterMetadata.get(index);
     }
 
     @Nullable
@@ -102,7 +107,7 @@ class ParameterMetadataProvider {
     }
 
     /**
-     * Helper class for holding information about query parameter like parameter name and type.
+     * Helper class to hold information about query parameter.
      */
     static class ParameterMetadata {
         @Nullable

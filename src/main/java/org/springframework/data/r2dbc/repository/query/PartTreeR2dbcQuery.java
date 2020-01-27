@@ -18,7 +18,9 @@ package org.springframework.data.r2dbc.repository.query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.data.r2dbc.core.DatabaseClient.BindSpec;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
+import org.springframework.data.r2dbc.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
 import org.springframework.data.relational.repository.query.RelationalParameters;
@@ -68,8 +70,56 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
     protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
         RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
         ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor);
-        return new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata, parameterMetadataProvider)
-                .createQuery(getDynamicSort(accessor));
+        R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata,
+                parameterMetadataProvider);
+        String sql =  queryCreator.createQuery(getDynamicSort(accessor));
+        return new BindableQuery() {
+            @Override
+            public <T extends BindSpec<T>> T bind(T bindSpec) {
+                T bindSpecToUse = bindSpec;
+
+                int index = 0;
+                int bindingIndex = 0;
+
+                for (Object value : accessor.getValues()) {
+                    ParameterMetadata metadata = parameterMetadataProvider.getParameterMetadata(index++);
+                    String parameterName = metadata.getName();
+                    Class<?> parameterType = metadata.getType();
+
+                    if (parameterName != null) {
+                        if (value == null) {
+                            checkNullIsAllowed(metadata, "Value of parameter with name %s must not be null!",
+                                    parameterName);
+                            bindSpecToUse =  bindSpecToUse.bindNull(parameterName, parameterType);
+                        } else {
+                            bindSpecToUse = bindSpecToUse.bind(parameterName, value);
+                        }
+                    } else {
+                        if (value == null) {
+                            checkNullIsAllowed(metadata, "Value of parameter with index %d must not be null!",
+                                    bindingIndex);
+                            bindSpecToUse = bindSpecToUse.bindNull(bindingIndex++, parameterType);
+                        } else {
+                            bindSpecToUse = bindSpecToUse.bind(bindingIndex++, value);
+                        }
+                    }
+                }
+
+                return bindSpecToUse;
+            }
+
+            @Override
+            public String get() {
+                return sql;
+            }
+
+            private void checkNullIsAllowed(ParameterMetadata metadata, String errorMessage, Object messageArgument) {
+                if (!metadata.isIsNullParameter()) {
+                    String message = String.format(errorMessage, messageArgument);
+                    throw new IllegalArgumentException(message);
+                }
+            }
+        };
     }
 
     private Sort getDynamicSort(RelationalParameterAccessor accessor) {
