@@ -15,6 +15,7 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.r2dbc.repository.query.ParameterMetadataProvider.ParameterMetadata;
@@ -56,31 +57,43 @@ class ConditionFactory {
     public Condition createCondition(Part part) {
         Part.Type type = part.getType();
         switch (type) {
+            case BETWEEN: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                BindMarker firstBindMarker = createBindMarker(parameterMetadataProvider.next(part));
+                BindMarker secondBindMarker = createBindMarker(parameterMetadataProvider.next(part));
+
+                // TODO: why do not we have BETWEEN condition?
+                return Conditions.isGreaterOrEqualTo(pathExpression, firstBindMarker)
+                        .and(Conditions.isLessOrEqualTo(pathExpression, secondBindMarker));
+            }
             case SIMPLE_PROPERTY: {
-                PropertyPath propertyPath = part.getProperty();
-                @SuppressWarnings("unchecked")
-                RelationalPersistentEntity<?> persistentEntity
-                        = mappingContext.getRequiredPersistentEntity(propertyPath.getOwningType());
-                RelationalPersistentProperty persistentProperty
-                        = persistentEntity.getRequiredPersistentProperty(propertyPath.getSegment());
-
-                Table table = SQL.table(persistentEntity.getTableName());
-                Column column = SQL.column(persistentProperty.getColumnName(), table);
-
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
                 if (parameterMetadata.isIsNullParameter()) {
-                    return IsNull.create(column);
+                    return Conditions.isNull(pathExpression);
                 }
-
-                BindMarker bindMarker;
-                if (parameterMetadata.getName() != null) {
-                    bindMarker = SQL.bindMarker(parameterMetadata.getName());
-                } else {
-                    bindMarker = SQL.bindMarker();
-                }
-                return Conditions.isEqual(column, bindMarker);
+                return Conditions.isEqual(pathExpression, createBindMarker(parameterMetadata));
             }
         }
         throw new UnsupportedOperationException("Creating conditions for type " + type + " is unsupported");
+    }
+
+    @NotNull
+    private Expression createPropertyPathExpression(PropertyPath propertyPath) {
+        @SuppressWarnings("unchecked")
+        RelationalPersistentEntity<?> persistentEntity
+                = mappingContext.getRequiredPersistentEntity(propertyPath.getOwningType());
+        RelationalPersistentProperty persistentProperty
+                = persistentEntity.getRequiredPersistentProperty(propertyPath.getSegment());
+        Table table = SQL.table(persistentEntity.getTableName());
+        return SQL.column(persistentProperty.getColumnName(), table);
+    }
+
+    @NotNull
+    private BindMarker createBindMarker(ParameterMetadata parameterMetadata) {
+        if (parameterMetadata.getName() != null) {
+            return SQL.bindMarker(parameterMetadata.getName());
+        }
+        return SQL.bindMarker();
     }
 }

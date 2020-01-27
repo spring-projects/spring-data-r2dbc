@@ -41,6 +41,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -51,7 +52,10 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class PartTreeR2dbcQueryIntegrationTests {
     private static final String TABLE = "users";
-    private static final String ALL_FIELDS = TABLE + ".id, " + TABLE + ".first_name, " + TABLE + ".last_name";
+    private static final String ALL_FIELDS = TABLE + ".id, "
+            + TABLE + ".first_name, "
+            + TABLE + ".last_name, "
+            + TABLE + ".date_of_birth";
 
     @Mock
     private ConnectionFactory connectionFactory;
@@ -112,7 +116,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 
     @Test
     public void createsQueryToFindAllEntitiesByTwoStringAttributes() throws Exception {
-        R2dbcQueryMethod queryMethod = getQueryMethod("findByLastNameAndFirstName", String.class, String.class);
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByLastNameAndFirstName", String.class, String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
         BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"Doe", "John"}));
@@ -123,12 +127,24 @@ public class PartTreeR2dbcQueryIntegrationTests {
 
     @Test
     public void createsQueryToFindAllEntitiesByOneOfTwoStringAttributes() throws Exception {
-        R2dbcQueryMethod queryMethod = getQueryMethod("findByLastNameOrFirstName", String.class, String.class);
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByLastNameOrFirstName", String.class, String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
         BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{"Doe", "John"}));
         String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
                 + " WHERE " + TABLE + ".last_name = ? OR " + TABLE + ".first_name = ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByDateAttributeBetween() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBetween", Date.class, Date.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{null, new Date()});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+                + " WHERE " + TABLE + ".date_of_birth >= ? AND " + TABLE + ".date_of_birth <= ?";
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
@@ -145,11 +161,13 @@ public class PartTreeR2dbcQueryIntegrationTests {
     private interface UserRepository extends Repository<User, Long> {
         Flux<User> findAllByFirstName(String firstName);
 
-        Flux<User> findByLastNameAndFirstName(String lastName, String firstName);
+        Flux<User> findAllByLastNameAndFirstName(String lastName, String firstName);
 
-        Flux<User> findByLastNameOrFirstName(String lastName, String firstName);
+        Flux<User> findAllByLastNameOrFirstName(String lastName, String firstName);
 
         Mono<Boolean> existsByFirstName(String firstName);
+
+        Flux<User> findAllByDateOfBirthBetween(Date from, Date to);
     }
 
     @Table("users")
@@ -159,5 +177,6 @@ public class PartTreeR2dbcQueryIntegrationTests {
         private Long id;
         private String firstName;
         private String lastName;
+        private Date dateOfBirth;
     }
 }
