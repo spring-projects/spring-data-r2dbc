@@ -55,7 +55,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
     private static final String ALL_FIELDS = TABLE + ".id, "
             + TABLE + ".first_name, "
             + TABLE + ".last_name, "
-            + TABLE + ".date_of_birth";
+            + TABLE + ".date_of_birth, "
+            + TABLE + ".age";
 
     @Mock
     private ConnectionFactory connectionFactory;
@@ -141,10 +142,54 @@ public class PartTreeR2dbcQueryIntegrationTests {
         R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBetween", Date.class, Date.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
-        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{null, new Date()});
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{new Date(), new Date()});
         BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
         String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
                 + " WHERE " + TABLE + ".date_of_birth >= ? AND " + TABLE + ".date_of_birth <= ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeLessThan() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeLessThan", Integer.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{30});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age < ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeLessThanEqual() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeLessThanEqual", Integer.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{30});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age <= ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeGreaterThan() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeGreaterThan", Integer.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{30});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age > ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeGreaterThanEqual() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeGreaterThanEqual", Integer.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{30});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age >= ?";
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
@@ -168,6 +213,14 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Mono<Boolean> existsByFirstName(String firstName);
 
         Flux<User> findAllByDateOfBirthBetween(Date from, Date to);
+
+        Flux<User> findAllByAgeLessThan(Integer age);
+
+        Flux<User> findAllByAgeLessThanEqual(Integer age);
+
+        Flux<User> findAllByAgeGreaterThan(Integer age);
+
+        Flux<User> findAllByAgeGreaterThanEqual(Integer age);
     }
 
     @Table("users")
@@ -178,5 +231,6 @@ public class PartTreeR2dbcQueryIntegrationTests {
         private String firstName;
         private String lastName;
         private Date dateOfBirth;
+        private Integer age;
     }
 }
