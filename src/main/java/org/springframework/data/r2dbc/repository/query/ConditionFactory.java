@@ -66,6 +66,7 @@ class ConditionFactory {
                 return Conditions.isGreaterOrEqualTo(pathExpression, firstBindMarker)
                         .and(Conditions.isLessOrEqualTo(pathExpression, secondBindMarker));
             }
+            case AFTER:
             case GREATER_THAN: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
@@ -76,6 +77,7 @@ class ConditionFactory {
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
                 return Conditions.isGreaterOrEqualTo(pathExpression, bindMarker);
             }
+            case BEFORE:
             case LESS_THAN: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));

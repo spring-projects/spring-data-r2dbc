@@ -193,6 +193,28 @@ public class PartTreeR2dbcQueryIntegrationTests {
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByDateAttributeAfter() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthAfter", Date.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{new Date()});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth > ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByDateAttributeBefore() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBefore", Date.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{new Date()});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth < ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -221,6 +243,10 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByAgeGreaterThan(Integer age);
 
         Flux<User> findAllByAgeGreaterThanEqual(Integer age);
+
+        Flux<User> findAllByDateOfBirthAfter(Date date);
+
+        Flux<User> findAllByDateOfBirthBefore(Date date);
     }
 
     @Table("users")
