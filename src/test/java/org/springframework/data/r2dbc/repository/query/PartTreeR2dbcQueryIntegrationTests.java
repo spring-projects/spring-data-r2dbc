@@ -259,6 +259,54 @@ public class PartTreeR2dbcQueryIntegrationTests {
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeStartingWith() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameStartingWith", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"Jo"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void appendsLikeOperatorParameterWithPercentSymbolForStartingWithQuery() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameStartingWith", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"Jo"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+        bindableQuery.bind(bindSpecMock);
+        verify(bindSpecMock, times(1)).bind(0, "Jo%");
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeEndingWith() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameEndingWith", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"hn"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void prependsLikeOperatorParameterWithPercentSymbolForStartingWithQuery() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameEndingWith", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"hn"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+        bindableQuery.bind(bindSpecMock);
+        verify(bindSpecMock, times(1)).bind(0, "%hn");
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -299,6 +347,10 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByFirstNameLike(String like);
 
         Flux<User> findAllByFirstNameNotLike(String like);
+
+        Flux<User> findAllByFirstNameStartingWith(String starting);
+
+        Flux<User> findAllByFirstNameEndingWith(String ending);
     }
 
     @Table("users")

@@ -41,23 +41,26 @@ class ParameterMetadataProvider {
     @Nullable
     private final Iterator<Object> bindableParameterValueIterator;
     private final List<ParameterMetadata> parameterMetadata = new ArrayList<>();
+    private final LikeEscaper likeEscaper;
 
     /**
      * Creates new instance of this class with the given {@link RelationalParameterAccessor}.
      *
      * @param accessor relational parameter accessor (must not be {@literal null}).
+     * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
      */
-    ParameterMetadataProvider(RelationalParameterAccessor accessor) {
-        this(accessor.getBindableParameters(), accessor.iterator());
+    ParameterMetadataProvider(RelationalParameterAccessor accessor, LikeEscaper likeEscaper) {
+        this(accessor.getBindableParameters(), accessor.iterator(), likeEscaper);
     }
 
     /**
      * Creates new instance of this class with the given {@link Parameters}.
      *
-     * @param parameters method parameters (must not be {@literal null})
+     * @param parameters  method parameters (must not be {@literal null})
+     * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
      */
-    ParameterMetadataProvider(Parameters<?, ?> parameters) {
-        this(parameters, null);
+    ParameterMetadataProvider(Parameters<?, ?> parameters, LikeEscaper likeEscaper) {
+        this(parameters, null, likeEscaper);
     }
 
     /**
@@ -66,25 +69,33 @@ class ParameterMetadataProvider {
      *
      * @param bindableParameterValueIterator iterator over bindable parameter values
      * @param parameters                     method parameters (must not be {@literal null})
+     * @param likeEscaper                    escaper for LIKE operator parameters (must not be {@literal null})
      */
     private ParameterMetadataProvider(Parameters<?, ?> parameters,
-                                      @Nullable Iterator<Object> bindableParameterValueIterator) {
+                                      @Nullable Iterator<Object> bindableParameterValueIterator,
+                                      LikeEscaper likeEscaper) {
         Assert.notNull(parameters, "Parameters must not be null!");
+        Assert.notNull(likeEscaper, "Like escaper must not be null!");
+
         this.bindableParameterIterator = parameters.getBindableParameters().iterator();
         this.bindableParameterValueIterator = bindableParameterValueIterator;
+        this.likeEscaper = likeEscaper;
     }
 
     /**
      * Creates new instance of {@link ParameterMetadata} for the given {@link Part} and next {@link Parameter}.
      */
     public ParameterMetadata next(Part part) {
-        Assert.isTrue(bindableParameterIterator.hasNext(), () -> String.format("No parameter available for part %s.", part));
+        Assert.isTrue(bindableParameterIterator.hasNext(),
+                () -> String.format("No parameter available for part %s.", part));
         Parameter parameter = bindableParameterIterator.next();
-        String name = getParameterName(parameter);
-        Class<?> type = parameter.getType();
-        Object value = getParameterValue();
-        boolean isNullProperty = value == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType());
-        ParameterMetadata metadata = new ParameterMetadata(name, type, isNullProperty);
+        ParameterMetadata metadata = ParameterMetadata.builder()
+                .type(parameter.getType())
+                .partType(part.getType())
+                .name(getParameterName(parameter))
+                .isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
+                .likeEscaper(likeEscaper)
+                .build();
         parameterMetadata.add(metadata);
         return metadata;
     }
@@ -104,44 +115,5 @@ class ParameterMetadataProvider {
     @Nullable
     private Object getParameterValue() {
         return bindableParameterValueIterator == null ? VALUE_PLACEHOLDER : bindableParameterValueIterator.next();
-    }
-
-    /**
-     * Helper class to hold information about query parameter.
-     */
-    static class ParameterMetadata {
-        @Nullable
-        private final String name;
-        private final Class<?> type;
-        private final boolean isNullParameter;
-
-        /**
-         * Creates new instance of this class with the given method name part, parameter name, parameter type and
-         * parameter value.
-         *
-         * @param name            parameter name
-         * @param type            parameter type (must not be {@literal null})
-         * @param isNullParameter whether parameter value should be translated to {@literal IS NULL} condition
-         */
-        public ParameterMetadata(@Nullable String name, Class<?> type, boolean isNullParameter) {
-            Assert.notNull(type, "Type must not be null");
-
-            this.name = name;
-            this.type = type;
-            this.isNullParameter = isNullParameter;
-        }
-
-        @Nullable
-        public String getName() {
-            return name;
-        }
-
-        public Class<?> getType() {
-            return type;
-        }
-
-        public boolean isIsNullParameter() {
-            return isNullParameter;
-        }
     }
 }

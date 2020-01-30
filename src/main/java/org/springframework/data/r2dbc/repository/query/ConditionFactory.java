@@ -18,7 +18,6 @@ package org.springframework.data.r2dbc.repository.query;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.mapping.PropertyPath;
 import org.springframework.data.mapping.context.MappingContext;
-import org.springframework.data.r2dbc.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.*;
@@ -94,6 +93,8 @@ class ConditionFactory {
             case IS_NOT_NULL: {
                 return Conditions.isNull(createPropertyPathExpression(part.getProperty())).not();
             }
+            case STARTING_WITH:
+            case ENDING_WITH:
             case LIKE: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
@@ -136,6 +137,11 @@ class ConditionFactory {
     }
 
     // TODO: include support of NOT LIKE operator into spring-data-relational
+    /**
+     * Negated LIKE {@link Condition} comparing two {@link Expression}s.
+     * <p/>
+     * Results in a rendered condition: {@code <left> NOT LIKE <right>}.
+     */
     private static class NotLike implements Segment, Condition {
         private final Comparison delegate;
 

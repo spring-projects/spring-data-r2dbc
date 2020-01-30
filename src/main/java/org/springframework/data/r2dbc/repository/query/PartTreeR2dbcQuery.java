@@ -15,12 +15,12 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import lombok.Setter;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.r2dbc.core.DatabaseClient.BindSpec;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
-import org.springframework.data.r2dbc.repository.query.ParameterMetadataProvider.ParameterMetadata;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
 import org.springframework.data.relational.repository.query.RelationalParameters;
@@ -40,6 +40,9 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
     private final ReactiveDataAccessStrategy dataAccessStrategy;
     private final RelationalParameters parameters;
     private final PartTree tree;
+
+    @Setter
+    private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
 
     /**
      * Creates new instance of this class with the given {@link R2dbcQueryMethod} and {@link DatabaseClient}.
@@ -69,7 +72,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
     @Override
     protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
         RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
-        ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor);
+        ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor, likeEscaper);
         R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata,
                 parameterMetadataProvider);
         String sql =  queryCreator.createQuery(getDynamicSort(accessor));
@@ -92,7 +95,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
                                     parameterName);
                             bindSpecToUse =  bindSpecToUse.bindNull(parameterName, parameterType);
                         } else {
-                            bindSpecToUse = bindSpecToUse.bind(parameterName, value);
+                            bindSpecToUse = bindSpecToUse.bind(parameterName, metadata.prepare(value));
                         }
                     } else {
                         if (value == null) {
@@ -100,7 +103,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
                                     bindingIndex);
                             bindSpecToUse = bindSpecToUse.bindNull(bindingIndex++, parameterType);
                         } else {
-                            bindSpecToUse = bindSpecToUse.bind(bindingIndex++, value);
+                            bindSpecToUse = bindSpecToUse.bind(bindingIndex++, metadata.prepare(value));
                         }
                     }
                 }
