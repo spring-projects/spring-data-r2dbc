@@ -88,6 +88,22 @@ class ConditionFactory {
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
                 return Conditions.isLessOrEqualTo(pathExpression, bindMarker);
             }
+            case IS_NULL: {
+                return Conditions.isNull(createPropertyPathExpression(part.getProperty()));
+            }
+            case IS_NOT_NULL: {
+                return Conditions.isNull(createPropertyPathExpression(part.getProperty())).not();
+            }
+            case LIKE: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
+                return Conditions.like(pathExpression, bindMarker);
+            }
+            case NOT_LIKE: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
+                return NotLike.create(pathExpression, bindMarker);
+            }
             case SIMPLE_PROPERTY: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
@@ -117,5 +133,46 @@ class ConditionFactory {
             return SQL.bindMarker(parameterMetadata.getName());
         }
         return SQL.bindMarker();
+    }
+
+    // TODO: include support of NOT LIKE operator into spring-data-relational
+    private static class NotLike implements Segment, Condition {
+        private final Comparison delegate;
+
+        private NotLike(Expression leftColumnOrExpression, Expression rightColumnOrExpression) {
+            this.delegate = Comparison.create(leftColumnOrExpression, "NOT LIKE", rightColumnOrExpression);
+        }
+
+        /**
+         * Creates new instance of this class with the given {@link Expression}s.
+         *
+         * @param leftColumnOrExpression the left {@link Expression}
+         * @param rightColumnOrExpression the right {@link Expression}
+         * @return {@link NotLike} condition
+         */
+        public static NotLike create(Expression leftColumnOrExpression, Expression rightColumnOrExpression) {
+            Assert.notNull(leftColumnOrExpression, "Left expression must not be null!");
+            Assert.notNull(rightColumnOrExpression, "Right expression must not be null!");
+            return new NotLike(leftColumnOrExpression, rightColumnOrExpression);
+        }
+
+        @Override
+        public void visit(Visitor visitor) {
+            Assert.notNull(visitor, "Visitor must not be null!");
+            delegate.visit(visitor);
+        }
+
+        public Expression getLeft() {
+            return delegate.getLeft();
+        }
+
+        public Expression getRight() {
+            return delegate.getRight();
+        }
+
+        @Override
+        public String toString() {
+            return getLeft().toString() + " NOT LIKE " + getRight();
+        }
     }
 }

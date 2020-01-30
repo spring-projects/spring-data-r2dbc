@@ -215,6 +215,50 @@ public class PartTreeR2dbcQueryIntegrationTests {
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeIsNull() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeIsNull");
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NULL";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeIsNotNull() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeIsNotNull");
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NOT NULL";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeLike() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameLike", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"%John%"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeNotLike() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotLike", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"%John%"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -247,6 +291,14 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByDateOfBirthAfter(Date date);
 
         Flux<User> findAllByDateOfBirthBefore(Date date);
+
+        Flux<User> findAllByAgeIsNull();
+
+        Flux<User> findAllByAgeIsNotNull();
+
+        Flux<User> findAllByFirstNameLike(String like);
+
+        Flux<User> findAllByFirstNameNotLike(String like);
     }
 
     @Table("users")
