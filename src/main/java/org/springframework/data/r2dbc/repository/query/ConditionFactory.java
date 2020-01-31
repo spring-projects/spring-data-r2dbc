@@ -95,6 +95,7 @@ class ConditionFactory {
             }
             case STARTING_WITH:
             case ENDING_WITH:
+            case CONTAINING:
             case LIKE: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));

@@ -307,6 +307,30 @@ public class PartTreeR2dbcQueryIntegrationTests {
         verify(bindSpecMock, times(1)).bind(0, "%hn");
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeContaining() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameContaining", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"oh"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void wrapsLikeOperatorParameterWithPercentSymbolsForContainingQuery() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameContaining", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"hn"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+        bindableQuery.bind(bindSpecMock);
+        verify(bindSpecMock, times(1)).bind(0, "%hn%");
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -351,6 +375,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByFirstNameStartingWith(String starting);
 
         Flux<User> findAllByFirstNameEndingWith(String ending);
+
+        Flux<User> findAllByFirstNameContaining(String containing);
     }
 
     @Table("users")
