@@ -18,11 +18,10 @@ package org.springframework.data.r2dbc.repository.query;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
-import org.springframework.data.relational.core.sql.Condition;
-import org.springframework.data.relational.core.sql.Expression;
+import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
+import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
+import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoin;
-import org.springframework.data.relational.core.sql.StatementBuilder;
-import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.core.sql.render.RenderContext;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
@@ -33,6 +32,7 @@ import org.springframework.util.Assert;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link AbstractQueryCreator} that creates {@link BindableQuery} from a {@link PartTree}.
@@ -108,6 +108,10 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
             selectBuilder.where(condition);
         }
 
+        if (sort.isSorted()) {
+            selectBuilder.orderBy(getOrderBySegments(sort, fromTable));
+        }
+
         RenderContext renderContext = dataAccessStrategy.getStatementMapper().getRenderContext();
         SqlRenderer sqlRenderer = renderContext == null ? SqlRenderer.create() : SqlRenderer.create(renderContext);
         return sqlRenderer.render(selectBuilder.build());
@@ -118,5 +122,23 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
             return fromTable.columns(dataAccessStrategy.getIdentifierColumns(entityMetadata.getJavaType()));
         }
         return fromTable.columns(dataAccessStrategy.getAllColumns(entityMetadata.getJavaType()));
+    }
+
+    private Collection<? extends OrderByField> getOrderBySegments(Sort sort, Table fromTable) {
+        RelationalPersistentEntity<?> tableEntity = entityMetadata.getTableEntity();
+        return sort.get().map(order -> {
+            RelationalPersistentProperty property = tableEntity.getRequiredPersistentProperty(order.getProperty());
+            Column column = fromTable.column(property.getColumnName());
+            // TODO: org.springframework.data.relational.core.sql.render.OrderByClauseVisitor from
+            //  spring-data-relational does not prepend column name with table name. It makes sense to render
+            //  column names uniformly.
+            OrderByField orderByField = OrderByField.from(column);
+            if (order.isAscending()) {
+                orderByField = orderByField.asc();
+            } else {
+                orderByField = orderByField.desc();
+            }
+            return orderByField;
+        }).collect(Collectors.toList());
     }
 }

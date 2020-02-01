@@ -331,6 +331,19 @@ public class PartTreeR2dbcQueryIntegrationTests {
         verify(bindSpecMock, times(1)).bind(0, "%hn%");
     }
 
+    @Test
+    public void createsQueryToFindAllEntitiesByIntegerAttributeWithDescendingOrderingByStringAttribute()
+            throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeOrderByLastNameDesc", Integer.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] {"oh"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+                + " WHERE " + TABLE + ".age = ? ORDER BY last_name DESC";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -377,6 +390,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByFirstNameEndingWith(String ending);
 
         Flux<User> findAllByFirstNameContaining(String containing);
+
+        Flux<User> findAllByAgeOrderByLastNameDesc(Integer age);
     }
 
     @Table("users")
