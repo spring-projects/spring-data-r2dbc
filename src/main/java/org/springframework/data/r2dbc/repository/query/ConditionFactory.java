@@ -93,6 +93,16 @@ class ConditionFactory {
             case IS_NOT_NULL: {
                 return Conditions.isNull(createPropertyPathExpression(part.getProperty())).not();
             }
+            case IN: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
+                return Conditions.in(pathExpression, bindMarker);
+            }
+            case NOT_IN: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
+                return Conditions.in(pathExpression, bindMarker).not();
+            }
             case STARTING_WITH:
             case ENDING_WITH:
             case CONTAINING:
@@ -106,6 +116,16 @@ class ConditionFactory {
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
                 return NotLike.create(pathExpression, bindMarker);
             }
+            case TRUE: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                // TODO: include factory method for '= TRUE' condition into spring-data-relational
+                return Conditions.isEqual(pathExpression, SQL.literalOf((Object) "TRUE"));
+            }
+            case FALSE: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                // TODO: include factory method for '= FALSE' condition into spring-data-relational
+                return Conditions.isEqual(pathExpression, SQL.literalOf((Object) "FALSE"));
+            }
             case SIMPLE_PROPERTY: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
@@ -114,6 +134,11 @@ class ConditionFactory {
                 }
                 return Conditions.isEqual(pathExpression, createBindMarker(parameterMetadata));
             }
+            case NEGATING_SIMPLE_PROPERTY: {
+                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
+                return Conditions.isEqual(pathExpression, createBindMarker(parameterMetadata)).not();
+            }
         }
         throw new UnsupportedOperationException("Creating conditions for type " + type + " is unsupported");
     }
@@ -121,12 +146,10 @@ class ConditionFactory {
     @NotNull
     private Expression createPropertyPathExpression(PropertyPath propertyPath) {
         @SuppressWarnings("unchecked")
-        RelationalPersistentEntity<?> persistentEntity
-                = mappingContext.getRequiredPersistentEntity(propertyPath.getOwningType());
-        RelationalPersistentProperty persistentProperty
-                = persistentEntity.getRequiredPersistentProperty(propertyPath.getSegment());
-        Table table = SQL.table(persistentEntity.getTableName());
-        return SQL.column(persistentProperty.getColumnName(), table);
+        RelationalPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(propertyPath.getOwningType());
+        RelationalPersistentProperty property = entity.getRequiredPersistentProperty(propertyPath.getSegment());
+        Table table = SQL.table(entity.getTableName());
+        return SQL.column(property.getColumnName(), table);
     }
 
     @NotNull
@@ -153,7 +176,7 @@ class ConditionFactory {
         /**
          * Creates new instance of this class with the given {@link Expression}s.
          *
-         * @param leftColumnOrExpression the left {@link Expression}
+         * @param leftColumnOrExpression  the left {@link Expression}
          * @param rightColumnOrExpression the right {@link Expression}
          * @return {@link NotLike} condition
          */
