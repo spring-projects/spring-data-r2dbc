@@ -149,7 +149,7 @@ class ConditionFactory {
                 return Conditions.isEqual(lhs, rhs).not();
             }
             default:
-                throw new UnsupportedOperationException("Creating conditions for type " + type + " is unsupported");
+                throw new IllegalArgumentException("Unsupported keyword " + type);
         }
 
     }
