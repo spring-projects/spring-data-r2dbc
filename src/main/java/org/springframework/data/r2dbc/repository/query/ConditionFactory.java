@@ -21,6 +21,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.*;
+import org.springframework.data.relational.core.sql.render.RenderNamingStrategy;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.util.Assert;
 
@@ -31,19 +32,25 @@ import org.springframework.util.Assert;
  */
 class ConditionFactory {
     private final MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty> mappingContext;
+    private final RenderNamingStrategy namingStrategy;
     private final ParameterMetadataProvider parameterMetadataProvider;
 
     /**
      * Creates new instance of this class with the given {@link MappingContext} and {@link ParameterMetadataProvider}.
      *
      * @param mappingContext            mapping context (must not be {@literal null})
+     * @param namingStrategy            naming strategy for SQL rendering (must not be {@literal null})
      * @param parameterMetadataProvider parameter metadata provider (must not be {@literal null})
      */
     ConditionFactory(MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty> mappingContext,
+                     RenderNamingStrategy namingStrategy,
                      ParameterMetadataProvider parameterMetadataProvider) {
         Assert.notNull(mappingContext, "Mapping context must not be null");
+        Assert.notNull(namingStrategy, "Render naming strategy must not be null");
         Assert.notNull(parameterMetadataProvider, "Parameter metadata provider must not be null");
+
         this.mappingContext = mappingContext;
+        this.namingStrategy = namingStrategy;
         this.parameterMetadataProvider = parameterMetadataProvider;
     }
 
@@ -87,44 +94,39 @@ class ConditionFactory {
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
                 return Conditions.isLessOrEqualTo(pathExpression, bindMarker);
             }
-            case IS_NULL: {
-                return Conditions.isNull(createPropertyPathExpression(part.getProperty()));
-            }
+            case IS_NULL:
             case IS_NOT_NULL: {
-                return Conditions.isNull(createPropertyPathExpression(part.getProperty())).not();
+                IsNull isNullCondition = Conditions.isNull(createPropertyPathExpression(part.getProperty()));
+                return part.getType() == Part.Type.IS_NULL ? isNullCondition : isNullCondition.not();
             }
-            case IN: {
-                Expression pathExpression = createPropertyPathExpression(part.getProperty());
-                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
-                return Conditions.in(pathExpression, bindMarker);
-            }
+            case IN:
             case NOT_IN: {
-                Expression pathExpression = createPropertyPathExpression(part.getProperty());
+                Expression pathExpression = upperIfIgnoreCase(part, createPropertyPathExpression(part.getProperty()));
                 BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
-                return Conditions.in(pathExpression, bindMarker).not();
+                In inCondition = Conditions.in(pathExpression, bindMarker);
+                return part.getType() == Part.Type.IN ? inCondition : inCondition.not();
             }
             case STARTING_WITH:
             case ENDING_WITH:
             case CONTAINING:
-            case LIKE: {
-                Expression pathExpression = createPropertyPathExpression(part.getProperty());
-                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
-                return Conditions.like(pathExpression, bindMarker);
-            }
+            case NOT_CONTAINING:
+            case LIKE:
             case NOT_LIKE: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
-                BindMarker bindMarker = createBindMarker(parameterMetadataProvider.next(part));
-                return NotLike.create(pathExpression, bindMarker);
+                ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
+                BindMarker bindMarker = createBindMarker(parameterMetadata);
+                Expression lhs = upperIfIgnoreCase(part, pathExpression);
+                Expression rhs = upperIfIgnoreCase(part, bindMarker, parameterMetadata.getType());
+                return part.getType() == Part.Type.NOT_LIKE || part.getType() == Part.Type.NOT_CONTAINING
+                        ? NotLike.create(lhs, rhs)
+                        : Conditions.like(lhs, rhs);
             }
-            case TRUE: {
-                Expression pathExpression = createPropertyPathExpression(part.getProperty());
-                // TODO: include factory method for '= TRUE' condition into spring-data-relational
-                return Conditions.isEqual(pathExpression, SQL.literalOf((Object) "TRUE"));
-            }
+            case TRUE:
             case FALSE: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
-                // TODO: include factory method for '= FALSE' condition into spring-data-relational
-                return Conditions.isEqual(pathExpression, SQL.literalOf((Object) "FALSE"));
+                // TODO: include factory methods for '= TRUE/FALSE' conditions into spring-data-relational
+                return Conditions.isEqual(pathExpression,
+                        SQL.literalOf((Object) (part.getType() == Part.Type.TRUE ? "TRUE" : "FALSE")));
             }
             case SIMPLE_PROPERTY: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
@@ -132,15 +134,24 @@ class ConditionFactory {
                 if (parameterMetadata.isIsNullParameter()) {
                     return Conditions.isNull(pathExpression);
                 }
-                return Conditions.isEqual(pathExpression, createBindMarker(parameterMetadata));
+
+                BindMarker bindMarker = createBindMarker(parameterMetadata);
+                Expression lhs = upperIfIgnoreCase(part, pathExpression);
+                Expression rhs = upperIfIgnoreCase(part, bindMarker, parameterMetadata.getType());
+                return Conditions.isEqual(lhs, rhs);
             }
             case NEGATING_SIMPLE_PROPERTY: {
                 Expression pathExpression = createPropertyPathExpression(part.getProperty());
                 ParameterMetadata parameterMetadata = parameterMetadataProvider.next(part);
-                return Conditions.isEqual(pathExpression, createBindMarker(parameterMetadata)).not();
+                BindMarker bindMarker = createBindMarker(parameterMetadata);
+                Expression lhs = upperIfIgnoreCase(part, pathExpression);
+                Expression rhs = upperIfIgnoreCase(part, bindMarker, parameterMetadata.getType());
+                return Conditions.isEqual(lhs, rhs).not();
             }
+            default:
+                throw new UnsupportedOperationException("Creating conditions for type " + type + " is unsupported");
         }
-        throw new UnsupportedOperationException("Creating conditions for type " + type + " is unsupported");
+
     }
 
     @NotNull
@@ -158,6 +169,91 @@ class ConditionFactory {
             return SQL.bindMarker(parameterMetadata.getName());
         }
         return SQL.bindMarker();
+    }
+
+    /**
+     * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
+     * requires ignoring case.
+     *
+     * @param part method name part (must not be {@literal null})
+     * @param expression expression to be uppercased (must not be {@literal null})
+     * @return uppercased expression or original expression if ignoring case is not strictly required
+     */
+    private Expression upperIfIgnoreCase(Part part, Expression expression) {
+        return upperIfIgnoreCase(part, expression, part.getProperty().getType());
+    }
+
+    /**
+     * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
+     * requires ignoring case.
+     *
+     * @param part method name part (must not be {@literal null})
+     * @param expression expression to be uppercased (must not be {@literal null})
+     * @param expressionType type of the given expression (must not be {@literal null})
+     * @return uppercased expression or original expression if ignoring case is not strictly required
+     */
+    private Expression upperIfIgnoreCase(Part part, Expression expression, Class<?> expressionType) {
+        switch (part.shouldIgnoreCase()) {
+            case ALWAYS:
+                Assert.state(canUpperCase(expressionType), "Unable to ignore case of " + expressionType.getName()
+                        + " type, the property '" + part.getProperty().getSegment() + "' must reference a string");
+                return new Upper(expression);
+            case WHEN_POSSIBLE:
+                if (canUpperCase(expressionType)) {
+                    return new Upper(expression);
+                }
+            case NEVER:
+            default:
+                return expression;
+        }
+    }
+
+    private boolean canUpperCase(Class<?> expressionType) {
+        return expressionType == String.class;
+    }
+
+    // TODO: include support of functions in WHERE conditions into spring-data-relational
+    /**
+     * Models the ANSI SQL {@code UPPER} function.
+     */
+    private class Upper implements Expression {
+        private Literal<Object> delegate;
+
+        /**
+         * Creates new instance of this class with the given expression. Only expressions of type {@link Column} and
+         * {@link BindMarker} are supported.
+         *
+         * @param expression expression to be uppercased (must not be {@literal null})
+         */
+        private Upper(Expression expression) {
+            Assert.notNull(expression, "Expression must not be null!");
+            String functionArgument;
+            if (expression instanceof BindMarker) {
+                functionArgument = expression instanceof Named ? ((Named) expression).getName() : expression.toString();
+            } else if (expression instanceof Column) {
+                functionArgument = "";
+                Table table = ((Column) expression).getTable();
+                if (table != null) {
+                    functionArgument = namingStrategy.getReferenceName(table) + ".";
+                }
+                functionArgument += namingStrategy.getReferenceName((Column) expression);
+            } else {
+                throw new IllegalArgumentException("Unable to ignore case expression of type "
+                        + expression.getClass().getName() + ". Only " + Column.class.getName() + " and "
+                        + BindMarker.class.getName() + " types are supported");
+            }
+            this.delegate = SQL.literalOf((Object) ("UPPER(" + functionArgument + ")"));
+        }
+
+        @Override
+        public void visit(Visitor visitor) {
+            delegate.visit(visitor);
+        }
+
+        @Override
+        public String toString() {
+            return delegate.toString();
+        }
     }
 
     // TODO: include support of NOT LIKE operator into spring-data-relational
@@ -192,17 +288,9 @@ class ConditionFactory {
             delegate.visit(visitor);
         }
 
-        public Expression getLeft() {
-            return delegate.getLeft();
-        }
-
-        public Expression getRight() {
-            return delegate.getRight();
-        }
-
         @Override
         public String toString() {
-            return getLeft().toString() + " NOT LIKE " + getRight();
+            return delegate.toString();
         }
     }
 }

@@ -299,7 +299,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void prependsLikeOperatorParameterWithPercentSymbolForStartingWithQuery() throws Exception {
+    public void prependsLikeOperatorParameterWithPercentSymbolForEndingWithQuery() throws Exception {
         R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameEndingWith", String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
@@ -327,11 +327,35 @@ public class PartTreeR2dbcQueryIntegrationTests {
         R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameContaining", String.class);
         PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
                 dataAccessStrategy);
-        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{"hn"});
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{"oh"});
         BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
         DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
         bindableQuery.bind(bindSpecMock);
-        verify(bindSpecMock, times(1)).bind(0, "%hn%");
+        verify(bindSpecMock, times(1)).bind(0, "%oh%");
+    }
+
+    @Test
+    public void createsQueryToFindAllEntitiesByStringAttributeNotContaining() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotContaining", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{"oh"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE ?";
+        assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Test
+    public void wrapsLikeOperatorParameterWithPercentSymbolsForNotContainingQuery() throws Exception {
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotContaining", String.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[]{"oh"});
+        BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+        bindableQuery.bind(bindSpecMock);
+        verify(bindSpecMock, times(1)).bind(0, "%oh%");
     }
 
     @Test
@@ -461,6 +485,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByFirstNameEndingWith(String ending);
 
         Flux<User> findAllByFirstNameContaining(String containing);
+
+        Flux<User> findAllByFirstNameNotContaining(String notContaining);
 
         Flux<User> findAllByAgeOrderByLastNameDesc(Integer age);
 

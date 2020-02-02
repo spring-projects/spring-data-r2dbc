@@ -16,13 +16,14 @@
 package org.springframework.data.r2dbc.repository.query;
 
 import org.springframework.data.domain.Sort;
-import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoin;
+import org.springframework.data.relational.core.sql.render.NamingStrategies;
 import org.springframework.data.relational.core.sql.render.RenderContext;
+import org.springframework.data.relational.core.sql.render.RenderNamingStrategy;
 import org.springframework.data.relational.core.sql.render.SqlRenderer;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
 import org.springframework.data.repository.query.parser.AbstractQueryCreator;
@@ -68,8 +69,12 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
         this.dataAccessStrategy = dataAccessStrategy;
         this.entityMetadata = entityMetadata;
 
-        R2dbcConverter converter = dataAccessStrategy.getConverter();
-        this.conditionFactory = new ConditionFactory(converter.getMappingContext(), parameterMetadataProvider);
+        RenderContext renderContext = dataAccessStrategy.getStatementMapper().getRenderContext();
+        RenderNamingStrategy namingStrategy = renderContext == null
+                ? NamingStrategies.asIs()
+                : renderContext.getNamingStrategy();
+        this.conditionFactory = new ConditionFactory(dataAccessStrategy.getConverter().getMappingContext(),
+                namingStrategy, parameterMetadataProvider);
     }
 
     @Override
