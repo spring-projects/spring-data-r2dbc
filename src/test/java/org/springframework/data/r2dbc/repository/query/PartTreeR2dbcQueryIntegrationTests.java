@@ -19,7 +19,9 @@ import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryMetadata;
 import lombok.Data;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -65,6 +67,9 @@ public class PartTreeR2dbcQueryIntegrationTests {
     private ConnectionFactory connectionFactory;
     @Mock
     private R2dbcConverter r2dbcConverter;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     private RelationalMappingContext mappingContext;
     private ReactiveDataAccessStrategy dataAccessStrategy;
@@ -439,6 +444,39 @@ public class PartTreeR2dbcQueryIntegrationTests {
         assertThat(bindableQuery.get()).isEqualTo(expectedSql);
     }
 
+    @Test
+    public void throwsExceptionWhenIgnoringCaseIsImpossible() throws Exception {
+        thrown.expect(IllegalStateException.class);
+        thrown.expectMessage("Unable to ignore case of java.lang.Long type, " +
+                "the property 'id' must reference a string");
+        R2dbcQueryMethod queryMethod = getQueryMethod("findByIdIgnoringCase", Long.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{1L}));
+    }
+
+    @Test
+    public void throwsExceptionWhenInPredicateHasNonIterableParameter() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Operator IN on id requires a Collection argument, " +
+                "found class java.lang.Long in method findAllByIdIn.");
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllByIdIn", Long.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{1L}));
+    }
+
+    @Test
+    public void throwsExceptionWhenSimplePropertyPredicateHasIterableParameter() throws Exception {
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Operator SIMPLE_PROPERTY on id requires a scalar argument, " +
+                "found interface java.util.Collection in method findAllById.");
+        R2dbcQueryMethod queryMethod = getQueryMethod("findAllById", Collection.class);
+        PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+                dataAccessStrategy);
+        r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[]{Collections.singleton(1L)}));
+    }
+
     private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
         Method method = UserRepository.class.getMethod(methodName, parameterTypes);
         return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -501,6 +539,12 @@ public class PartTreeR2dbcQueryIntegrationTests {
         Flux<User> findAllByActiveFalse();
 
         Flux<User> findAllByFirstNameIgnoreCase(String firstName);
+
+        Mono<User> findByIdIgnoringCase(Long id);
+
+        Flux<User> findAllByIdIn(Long id);
+
+        Flux<User> findAllById(Collection<Long> ids);
     }
 
     @Table("users")
