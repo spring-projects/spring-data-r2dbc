@@ -17,7 +17,8 @@ package org.springframework.data.r2dbc.repository.query;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.mapping.PropertyPath;
-import org.springframework.data.mapping.context.MappingContext;
+import org.springframework.data.r2dbc.convert.R2dbcConverter;
+import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.mapping.RelationalPersistentProperty;
 import org.springframework.data.relational.core.sql.*;
@@ -31,27 +32,26 @@ import org.springframework.util.Assert;
  * @author Roman Chigvintsev
  */
 class ConditionFactory {
-    private final MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty> mappingContext;
+    private final ReactiveDataAccessStrategy dataAccessStrategy;
     private final RenderNamingStrategy namingStrategy;
     private final ParameterMetadataProvider parameterMetadataProvider;
 
     /**
-     * Creates new instance of this class with the given {@link MappingContext}, {@link RenderNamingStrategy} and
-     * {@link ParameterMetadataProvider}.
+     * Creates new instance of this class with the given {@link ReactiveDataAccessStrategy},
+     * {@link RenderNamingStrategy} and {@link ParameterMetadataProvider}.
      *
-     * @param mappingContext            mapping context (must not be {@literal null})
+     * @param dataAccessStrategy        data access strategy (must not be {@literal null})
      * @param namingStrategy            naming strategy for SQL rendering (must not be {@literal null})
      * @param parameterMetadataProvider parameter metadata provider (must not be {@literal null})
      */
-    ConditionFactory(MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty>
-                             mappingContext,
+    ConditionFactory(ReactiveDataAccessStrategy dataAccessStrategy,
                      RenderNamingStrategy namingStrategy,
                      ParameterMetadataProvider parameterMetadataProvider) {
-        Assert.notNull(mappingContext, "Mapping context must not be null");
-        Assert.notNull(namingStrategy, "Render naming strategy must not be null");
-        Assert.notNull(parameterMetadataProvider, "Parameter metadata provider must not be null");
+        Assert.notNull(dataAccessStrategy, "Reactive data access strategy must not be null!");
+        Assert.notNull(namingStrategy, "Render naming strategy must not be null!");
+        Assert.notNull(parameterMetadataProvider, "Parameter metadata provider must not be null!");
 
-        this.mappingContext = mappingContext;
+        this.dataAccessStrategy = dataAccessStrategy;
         this.namingStrategy = namingStrategy;
         this.parameterMetadataProvider = parameterMetadataProvider;
     }
@@ -159,11 +159,17 @@ class ConditionFactory {
 
     @NotNull
     private Expression createPropertyPathExpression(PropertyPath propertyPath) {
-        @SuppressWarnings("unchecked")
-        RelationalPersistentEntity<?> entity = mappingContext.getRequiredPersistentEntity(propertyPath.getOwningType());
+        RelationalPersistentEntity<?> entity = getPersistentEntity(propertyPath);
         RelationalPersistentProperty property = entity.getRequiredPersistentProperty(propertyPath.getSegment());
-        Table table = SQL.table(entity.getTableName());
-        return SQL.column(property.getColumnName(), table);
+        Table table = SQL.table(dataAccessStrategy.toSql(entity.getTableName()));
+        return SQL.column(dataAccessStrategy.toSql(property.getColumnName()), table);
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    private RelationalPersistentEntity<?> getPersistentEntity(PropertyPath propertyPath) {
+        R2dbcConverter converter = dataAccessStrategy.getConverter();
+        return converter.getMappingContext().getRequiredPersistentEntity(propertyPath.getOwningType());
     }
 
     @NotNull
@@ -178,7 +184,7 @@ class ConditionFactory {
      * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
      * requires ignoring case.
      *
-     * @param part method name part (must not be {@literal null})
+     * @param part       method name part (must not be {@literal null})
      * @param expression expression to be uppercased (must not be {@literal null})
      * @return uppercased expression or original expression if ignoring case is not strictly required
      */
@@ -190,8 +196,8 @@ class ConditionFactory {
      * Applies an {@code UPPERCASE} conversion to the given {@link Expression} in case the underlying {@link Part}
      * requires ignoring case.
      *
-     * @param part method name part (must not be {@literal null})
-     * @param expression expression to be uppercased (must not be {@literal null})
+     * @param part           method name part (must not be {@literal null})
+     * @param expression     expression to be uppercased (must not be {@literal null})
      * @param expressionType type of the given expression (must not be {@literal null})
      * @return uppercased expression or original expression if ignoring case is not strictly required
      */

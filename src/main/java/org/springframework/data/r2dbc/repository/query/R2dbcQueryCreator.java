@@ -73,8 +73,7 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
         RenderNamingStrategy namingStrategy = renderContext == null
                 ? NamingStrategies.asIs()
                 : renderContext.getNamingStrategy();
-        this.conditionFactory = new ConditionFactory(dataAccessStrategy.getConverter().getMappingContext(),
-                namingStrategy, parameterMetadataProvider);
+        this.conditionFactory = new ConditionFactory(dataAccessStrategy, namingStrategy, parameterMetadataProvider);
     }
 
     /**
@@ -123,7 +122,7 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
      */
     @Override
     protected String complete(Condition condition, Sort sort) {
-        Table fromTable = Table.create(entityMetadata.getTableName());
+        Table fromTable = Table.create(dataAccessStrategy.toSql(entityMetadata.getTableName()));
         Collection<? extends Expression> selectExpressions = getSelectionExpressions(fromTable);
         SelectFromAndJoin selectBuilder = StatementBuilder.select(selectExpressions).from(fromTable);
 
@@ -146,16 +145,16 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
 
     private Collection<? extends Expression> getSelectionExpressions(Table fromTable) {
         if (tree.isExistsProjection()) {
-            return fromTable.columns(dataAccessStrategy.getIdentifierColumns(entityMetadata.getJavaType()));
+            return fromTable.columns(toSql(dataAccessStrategy.getIdentifierColumns(entityMetadata.getJavaType())));
         }
-        return fromTable.columns(dataAccessStrategy.getAllColumns(entityMetadata.getJavaType()));
+        return fromTable.columns(toSql(dataAccessStrategy.getAllColumns(entityMetadata.getJavaType())));
     }
 
     private Collection<? extends OrderByField> getOrderBySegments(Sort sort, Table fromTable) {
         RelationalPersistentEntity<?> tableEntity = entityMetadata.getTableEntity();
         return sort.get().map(order -> {
             RelationalPersistentProperty property = tableEntity.getRequiredPersistentProperty(order.getProperty());
-            Column column = fromTable.column(property.getColumnName());
+            Column column = fromTable.column(dataAccessStrategy.toSql(property.getColumnName()));
             // TODO: org.springframework.data.relational.core.sql.render.OrderByClauseVisitor from
             //  spring-data-relational does not prepend column name with table name. It makes sense to render
             //  column names uniformly.
@@ -167,5 +166,10 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
             }
             return orderByField;
         }).collect(Collectors.toList());
+    }
+
+    private Collection<String> toSql(Collection<? extends SqlIdentifier> identifiers) {
+        Assert.notNull(identifiers, "SQL identifiers must not be null");
+        return identifiers.stream().map(dataAccessStrategy::toSql).collect(Collectors.toList());
     }
 }
