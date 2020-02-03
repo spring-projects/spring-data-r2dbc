@@ -45,7 +45,8 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
     private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
 
     /**
-     * Creates new instance of this class with the given {@link R2dbcQueryMethod} and {@link DatabaseClient}.
+     * Creates new instance of this class with the given {@link R2dbcQueryMethod}, {@link DatabaseClient},
+     * {@link R2dbcConverter} and {@link ReactiveDataAccessStrategy}.
      *
      * @param method             query method (must not be {@literal null})
      * @param databaseClient     database client (must not be {@literal null})
@@ -69,6 +70,12 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
         }
     }
 
+    /**
+     * Creates new {@link BindableQuery} for the given {@link RelationalParameterAccessor}.
+     *
+     * @param accessor query parameter accessor (must not be {@literal null})
+     * @return new instance of {@link BindableQuery}
+     */
     @Override
     protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
         RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();

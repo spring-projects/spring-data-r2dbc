@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.stream.Collectors;
 
 /**
- * Implementation of {@link AbstractQueryCreator} that creates {@link BindableQuery} from a {@link PartTree}.
+ * Implementation of {@link AbstractQueryCreator} that creates SQL query from a {@link PartTree}.
  *
  * @author Roman Chigvintsev
  */
@@ -77,27 +77,49 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
                 namingStrategy, parameterMetadataProvider);
     }
 
+    /**
+     * Creates {@link Condition} for the given method name part.
+     *
+     * @param part method name part (must not be {@literal null})
+     * @param iterator iterator over query parameter values
+     * @return new instance of {@link Condition}
+     */
     @Override
     protected Condition create(Part part, Iterator<Object> iterator) {
         return conditionFactory.createCondition(part);
     }
 
+    /**
+     * Combines the given {@link Condition} with the new one created for the given method name part using {@code AND}.
+     *
+     * @param part method name part (must not be {@literal null})
+     * @param base condition to be combined (must not be {@literal null})
+     * @param iterator iterator over query parameter values
+     * @return condition combination
+     */
     @Override
     protected Condition and(Part part, Condition base, Iterator<Object> iterator) {
         return base.and(conditionFactory.createCondition(part));
     }
 
+    /**
+     * Combines two {@link Condition}s using {@code OR}.
+     *
+     * @param base condition to be combined (must not be {@literal null})
+     * @param condition another condition to be combined (must not be {@literal null})
+     * @return condition combination
+     */
     @Override
     protected Condition or(Condition base, Condition condition) {
         return base.or(condition);
     }
 
     /**
-     * Creates {@link BindableQuery} applying the given {@link Condition} and {@link Sort} definition.
+     * Creates SQL query applying the given {@link Condition} and {@link Sort} definition.
      *
      * @param condition condition to be applied to query
      * @param sort      sort option to be applied to query (must not be {@literal null})
-     * @return new instance of {@link BindableQuery}
+     * @return SQL query
      */
     @Override
     protected String complete(Condition condition, Sort sort) {

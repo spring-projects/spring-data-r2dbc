@@ -36,13 +36,15 @@ class ConditionFactory {
     private final ParameterMetadataProvider parameterMetadataProvider;
 
     /**
-     * Creates new instance of this class with the given {@link MappingContext} and {@link ParameterMetadataProvider}.
+     * Creates new instance of this class with the given {@link MappingContext}, {@link RenderNamingStrategy} and
+     * {@link ParameterMetadataProvider}.
      *
      * @param mappingContext            mapping context (must not be {@literal null})
      * @param namingStrategy            naming strategy for SQL rendering (must not be {@literal null})
      * @param parameterMetadataProvider parameter metadata provider (must not be {@literal null})
      */
-    ConditionFactory(MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty> mappingContext,
+    ConditionFactory(MappingContext<? extends RelationalPersistentEntity<?>, ? extends RelationalPersistentProperty>
+                             mappingContext,
                      RenderNamingStrategy namingStrategy,
                      ParameterMetadataProvider parameterMetadataProvider) {
         Assert.notNull(mappingContext, "Mapping context must not be null");
@@ -59,6 +61,7 @@ class ConditionFactory {
      *
      * @param part method name part (must not be {@literal null})
      * @return {@link Condition} instance
+     * @throws IllegalArgumentException if part type is not supported
      */
     public Condition createCondition(Part part) {
         Part.Type type = part.getType();
@@ -215,6 +218,8 @@ class ConditionFactory {
     // TODO: include support of functions in WHERE conditions into spring-data-relational
     /**
      * Models the ANSI SQL {@code UPPER} function.
+     * <p>
+     * Results in a rendered function: {@code UPPER(<expression>)}.
      */
     private class Upper implements Expression {
         private Literal<Object> delegate;

@@ -44,7 +44,7 @@ class ParameterMetadataProvider {
     private final LikeEscaper likeEscaper;
 
     /**
-     * Creates new instance of this class with the given {@link RelationalParameterAccessor}.
+     * Creates new instance of this class with the given {@link RelationalParameterAccessor} and {@link LikeEscaper}.
      *
      * @param accessor relational parameter accessor (must not be {@literal null}).
      * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
@@ -54,7 +54,7 @@ class ParameterMetadataProvider {
     }
 
     /**
-     * Creates new instance of this class with the given {@link Parameters}.
+     * Creates new instance of this class with the given {@link Parameters} and {@link LikeEscaper}.
      *
      * @param parameters  method parameters (must not be {@literal null})
      * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
@@ -64,8 +64,8 @@ class ParameterMetadataProvider {
     }
 
     /**
-     * Creates new instance of this class with the given {@link Parameters} and {@link Iterator} over all bindable
-     * parameter values.
+     * Creates new instance of this class with the given {@link Parameters}, {@link Iterator} over all bindable
+     * parameter values and {@link LikeEscaper}.
      *
      * @param bindableParameterValueIterator iterator over bindable parameter values
      * @param parameters                     method parameters (must not be {@literal null})
