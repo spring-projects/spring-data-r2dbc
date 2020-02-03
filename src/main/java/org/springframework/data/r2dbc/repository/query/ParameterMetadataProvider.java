@@ -92,7 +92,7 @@ class ParameterMetadataProvider {
         ParameterMetadata metadata = ParameterMetadata.builder()
                 .type(parameter.getType())
                 .partType(part.getType())
-                .name(getParameterName(parameter))
+                .name(getParameterName(parameter, part.getProperty().getSegment()))
                 .isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
                 .likeEscaper(likeEscaper)
                 .build();
@@ -105,11 +105,11 @@ class ParameterMetadataProvider {
     }
 
     @Nullable
-    private String getParameterName(Parameter parameter) {
+    private String getParameterName(Parameter parameter, String defaultName) {
         if (parameter.isExplicitlyNamed()) {
             return parameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named"));
         }
-        return null;
+        return defaultName;
     }
 
     @Nullable
