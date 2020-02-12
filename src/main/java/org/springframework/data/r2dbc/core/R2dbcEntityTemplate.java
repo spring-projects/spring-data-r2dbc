@@ -74,7 +74,7 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 	/**
 	 * Create a new {@link R2dbcEntityTemplate} given {@link DatabaseClient}.
 	 *
-	 * @param databaseClient
+	 * @param databaseClient must not be {@literal null}.
 	 */
 	public R2dbcEntityTemplate(DatabaseClient databaseClient) {
 
@@ -89,7 +89,7 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 	/**
 	 * Create a new {@link R2dbcEntityTemplate} given {@link DatabaseClient} and {@link ReactiveDataAccessStrategy}.
 	 *
-	 * @param databaseClient
+	 * @param databaseClient must not be {@literal null}.
 	 */
 	public R2dbcEntityTemplate(DatabaseClient databaseClient, ReactiveDataAccessStrategy strategy) {
 
@@ -485,6 +485,7 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 			ReactiveDataAccessStrategy strategy) {
 
 		if (strategy instanceof DefaultReactiveDataAccessStrategy) {
+
 			DefaultReactiveDataAccessStrategy strategy1 = (DefaultReactiveDataAccessStrategy) strategy;
 			return strategy1.getMappingContext();
 		}

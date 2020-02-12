@@ -64,6 +64,7 @@ public class Query {
 	 * @param criteria must not be {@literal null}.
 	 */
 	private Query(@Nullable Criteria criteria) {
+
 		this.criteria = criteria;
 		this.sort = Sort.unsorted();
 		this.columns = Collections.emptyList();
@@ -72,6 +73,7 @@ public class Query {
 	}
 
 	private Query(@Nullable Criteria criteria, List<SqlIdentifier> columns, Sort sort, int limit, long offset) {
+
 		this.criteria = criteria;
 		this.columns = columns;
 		this.sort = sort;
