@@ -69,6 +69,7 @@ import org.springframework.util.StringUtils;
  * Default implementation of {@link DatabaseClient}.
  *
  * @author Mark Paluch
+ * @author Bogdan Ilchyshyn
  */
 class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 
@@ -1196,7 +1197,7 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 
 			assertRegularClass(table);
 
-			return new DefaultTypedUpdateSpec<>(table, null, null);
+			return new DefaultTypedUpdateSpec<>(table, null, null, null);
 		}
 	}
 
@@ -1275,24 +1276,27 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 		}
 	}
 
-	class DefaultTypedUpdateSpec<T> implements TypedUpdateSpec<T>, UpdateSpec {
+	class DefaultTypedUpdateSpec<T> implements TypedUpdateSpec<T>, UpdateMatchingSpec {
 
 		private final Class<T> typeToUpdate;
 		private final @Nullable SqlIdentifier table;
 		private final @Nullable T objectToUpdate;
+		private final @Nullable Criteria where;
 
-		DefaultTypedUpdateSpec(Class<T> typeToUpdate, @Nullable SqlIdentifier table, @Nullable T objectToUpdate) {
+		DefaultTypedUpdateSpec(Class<T> typeToUpdate, @Nullable SqlIdentifier table, @Nullable T objectToUpdate,
+							   @Nullable Criteria where) {
 			this.typeToUpdate = typeToUpdate;
 			this.table = table;
 			this.objectToUpdate = objectToUpdate;
+			this.where = where;
 		}
 
 		@Override
-		public UpdateSpec using(T objectToUpdate) {
+		public UpdateMatchingSpec using(T objectToUpdate) {
 
 			Assert.notNull(objectToUpdate, "Object to update must not be null");
 
-			return new DefaultTypedUpdateSpec<>(this.typeToUpdate, this.table, objectToUpdate);
+			return new DefaultTypedUpdateSpec<>(this.typeToUpdate, this.table, objectToUpdate, this.where);
 		}
 
 		@Override
@@ -1300,7 +1304,15 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 
 			Assert.notNull(tableName, "Table name must not be null!");
 
-			return new DefaultTypedUpdateSpec<>(this.typeToUpdate, tableName, this.objectToUpdate);
+			return new DefaultTypedUpdateSpec<>(this.typeToUpdate, tableName, this.objectToUpdate, this.where);
+		}
+
+		@Override
+		public UpdateSpec matching(Criteria criteria) {
+
+			Assert.notNull(criteria, "Criteria must not be null!");
+
+			return new DefaultTypedUpdateSpec<>(this.typeToUpdate, this.table, this.objectToUpdate, criteria);
 		}
 
 		@Override
@@ -1343,8 +1355,13 @@ class DefaultDatabaseClient implements DatabaseClient, ConnectionAccessor {
 				}
 			}
 
+			Criteria updateCriteria = Criteria.where(dataAccessStrategy.toSql(ids.get(0))).is(id);
+			if (this.where != null) {
+				updateCriteria = updateCriteria.and(this.where);
+			}
+
 			PreparedOperation<?> operation = mapper.getMappedObject(
-					mapper.createUpdate(table, update).withCriteria(Criteria.where(dataAccessStrategy.toSql(ids.get(0))).is(id)));
+					mapper.createUpdate(table, update).withCriteria(updateCriteria));
 
 			return exchangeUpdate(operation);
 		}
