@@ -18,6 +18,7 @@ package org.springframework.data.r2dbc.repository.query;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NonNull;
+
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
@@ -28,55 +29,51 @@ import org.springframework.util.Assert;
 @Builder
 @AllArgsConstructor
 class ParameterMetadata {
-    @Nullable
-    private final String name;
-    @NonNull
-    private final Class<?> type;
-    @NonNull
-    private final Part.Type partType;
-    private final boolean isNullParameter;
-    @NonNull
-    private final LikeEscaper likeEscaper;
+	@Nullable private final String name;
+	@NonNull private final Class<?> type;
+	@NonNull private final Part.Type partType;
+	private final boolean isNullParameter;
+	@NonNull private final LikeEscaper likeEscaper;
 
-    /**
-     * Prepares parameter value before it's actually bound to the query.
-     *
-     * @param value must not be {@literal null}
-     * @return prepared query parameter value
-     */
-    public Object prepare(Object value) {
-        Assert.notNull(value, "Value must not be null!");
-        if (String.class.equals(type)) {
-            switch (partType) {
-                case STARTING_WITH:
-                    return String.format("%s%%", likeEscaper.escape(value.toString()));
-                case ENDING_WITH:
-                    return String.format("%%%s", likeEscaper.escape(value.toString()));
-                case CONTAINING:
-                case NOT_CONTAINING:
-                    return String.format("%%%s%%", likeEscaper.escape(value.toString()));
-                default:
-                    return value;
-            }
-        }
-        return value;
-    }
+	/**
+	 * Prepares parameter value before it's actually bound to the query.
+	 *
+	 * @param value must not be {@literal null}
+	 * @return prepared query parameter value
+	 */
+	public Object prepare(Object value) {
+		Assert.notNull(value, "Value must not be null!");
+		if (String.class.equals(type)) {
+			switch (partType) {
+				case STARTING_WITH:
+					return String.format("%s%%", likeEscaper.escape(value.toString()));
+				case ENDING_WITH:
+					return String.format("%%%s", likeEscaper.escape(value.toString()));
+				case CONTAINING:
+				case NOT_CONTAINING:
+					return String.format("%%%s%%", likeEscaper.escape(value.toString()));
+				default:
+					return value;
+			}
+		}
+		return value;
+	}
 
-    @Nullable
-    public String getName() {
-        return name;
-    }
+	@Nullable
+	public String getName() {
+		return name;
+	}
 
-    public Class<?> getType() {
-        return type;
-    }
+	public Class<?> getType() {
+		return type;
+	}
 
-    /**
-     * Determines whether parameter value should be translated to {@literal IS NULL} condition.
-     *
-     * @return {@literal true} if parameter value should be translated to {@literal IS NULL} condition
-     */
-    public boolean isIsNullParameter() {
-        return isNullParameter;
-    }
+	/**
+	 * Determines whether parameter value should be translated to {@literal IS NULL} condition.
+	 *
+	 * @return {@literal true} if parameter value should be translated to {@literal IS NULL} condition
+	 */
+	public boolean isIsNullParameter() {
+		return isNullParameter;
+	}
 }

@@ -16,6 +16,7 @@
 package org.springframework.data.r2dbc.repository.query;
 
 import lombok.Setter;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
@@ -36,113 +37,105 @@ import org.springframework.data.util.Streamable;
  * @author Roman Chigvintsev
  */
 public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
-    private final ReactiveDataAccessStrategy dataAccessStrategy;
-    private final RelationalParameters parameters;
-    private final PartTree tree;
+	private final ReactiveDataAccessStrategy dataAccessStrategy;
+	private final RelationalParameters parameters;
+	private final PartTree tree;
 
-    @Setter
-    private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
+	@Setter private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
 
-    /**
-     * Creates new instance of this class with the given {@link R2dbcQueryMethod}, {@link DatabaseClient},
-     * {@link R2dbcConverter} and {@link ReactiveDataAccessStrategy}.
-     *
-     * @param method             query method (must not be {@literal null})
-     * @param databaseClient     database client (must not be {@literal null})
-     * @param converter          converter (must not be {@literal null})
-     * @param dataAccessStrategy data access strategy (must not be {@literal null})
-     */
-    public PartTreeR2dbcQuery(R2dbcQueryMethod method,
-                              DatabaseClient databaseClient,
-                              R2dbcConverter converter,
-                              ReactiveDataAccessStrategy dataAccessStrategy) {
-        super(method, databaseClient, converter);
-        this.dataAccessStrategy = dataAccessStrategy;
-        this.parameters = method.getParameters();
+	/**
+	 * Creates new instance of this class with the given {@link R2dbcQueryMethod}, {@link DatabaseClient},
+	 * {@link R2dbcConverter} and {@link ReactiveDataAccessStrategy}.
+	 *
+	 * @param method query method (must not be {@literal null})
+	 * @param databaseClient database client (must not be {@literal null})
+	 * @param converter converter (must not be {@literal null})
+	 * @param dataAccessStrategy data access strategy (must not be {@literal null})
+	 */
+	public PartTreeR2dbcQuery(R2dbcQueryMethod method, DatabaseClient databaseClient, R2dbcConverter converter,
+			ReactiveDataAccessStrategy dataAccessStrategy) {
+		super(method, databaseClient, converter);
+		this.dataAccessStrategy = dataAccessStrategy;
+		this.parameters = method.getParameters();
 
-        try {
-            this.tree = new PartTree(method.getName(), method.getEntityInformation().getJavaType());
-            validate(this.tree, this.parameters, method.getName());
-        } catch (Exception e) {
-            String message = String.format("Failed to create query for method %s! %s", method, e.getMessage());
-            throw new IllegalArgumentException(message, e);
-        }
-    }
+		try {
+			this.tree = new PartTree(method.getName(), method.getEntityInformation().getJavaType());
+			validate(this.tree, this.parameters, method.getName());
+		} catch (Exception e) {
+			String message = String.format("Failed to create query for method %s! %s", method, e.getMessage());
+			throw new IllegalArgumentException(message, e);
+		}
+	}
 
-    /**
-     * Creates new {@link BindableQuery} for the given {@link RelationalParameterAccessor}.
-     *
-     * @param accessor query parameter accessor (must not be {@literal null})
-     * @return new instance of {@link BindableQuery}
-     */
-    @Override
-    protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
-        RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
-        ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor, likeEscaper);
-        R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata,
-                parameterMetadataProvider);
-        String sql =  queryCreator.createQuery(getDynamicSort(accessor));
-        return new PartTreeBindableQuery(sql, accessor, parameterMetadataProvider);
-    }
+	/**
+	 * Creates new {@link BindableQuery} for the given {@link RelationalParameterAccessor}.
+	 *
+	 * @param accessor query parameter accessor (must not be {@literal null})
+	 * @return new instance of {@link BindableQuery}
+	 */
+	@Override
+	protected BindableQuery createQuery(RelationalParameterAccessor accessor) {
+		RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
+		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor, likeEscaper);
+		R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata,
+				parameterMetadataProvider);
+		String sql = queryCreator.createQuery(getDynamicSort(accessor));
+		return new PartTreeBindableQuery(sql, accessor, parameterMetadataProvider);
+	}
 
-    private Sort getDynamicSort(RelationalParameterAccessor accessor) {
-        return parameters.potentiallySortsDynamically() ? accessor.getSort() : Sort.unsorted();
-    }
+	private Sort getDynamicSort(RelationalParameterAccessor accessor) {
+		return parameters.potentiallySortsDynamically() ? accessor.getSort() : Sort.unsorted();
+	}
 
-    private static void validate(PartTree tree, RelationalParameters parameters, String methodName) {
-        int argCount = 0;
-        Iterable<Part> parts = () -> tree.stream().flatMap(Streamable::stream).iterator();
-        for (Part part : parts) {
-            int numberOfArguments = part.getNumberOfArguments();
-            for (int i = 0; i < numberOfArguments; i++) {
-                throwExceptionOnArgumentMismatch(methodName, part, parameters, argCount);
-                argCount++;
-            }
-        }
-    }
+	private static void validate(PartTree tree, RelationalParameters parameters, String methodName) {
+		int argCount = 0;
+		Iterable<Part> parts = () -> tree.stream().flatMap(Streamable::stream).iterator();
+		for (Part part : parts) {
+			int numberOfArguments = part.getNumberOfArguments();
+			for (int i = 0; i < numberOfArguments; i++) {
+				throwExceptionOnArgumentMismatch(methodName, part, parameters, argCount);
+				argCount++;
+			}
+		}
+	}
 
-    private static void throwExceptionOnArgumentMismatch(String methodName,
-                                                         Part part,
-                                                         RelationalParameters parameters,
-                                                         int index) {
-        Part.Type type = part.getType();
-        String property = part.getProperty().toDotPath();
+	private static void throwExceptionOnArgumentMismatch(String methodName, Part part, RelationalParameters parameters,
+			int index) {
+		Part.Type type = part.getType();
+		String property = part.getProperty().toDotPath();
 
-        if (!parameters.getBindableParameters().hasParameterAt(index)) {
-            String msgTemplate = "Method %s expects at least %d arguments but only found %d. " +
-                    "This leaves an operator of type %s for property %s unbound.";
-            String formattedMsg = String.format(msgTemplate, methodName, index + 1, index, type.name(), property);
-            throw new IllegalStateException(formattedMsg);
-        }
+		if (!parameters.getBindableParameters().hasParameterAt(index)) {
+			String msgTemplate = "Method %s expects at least %d arguments but only found %d. "
+					+ "This leaves an operator of type %s for property %s unbound.";
+			String formattedMsg = String.format(msgTemplate, methodName, index + 1, index, type.name(), property);
+			throw new IllegalStateException(formattedMsg);
+		}
 
-        RelationalParameters.RelationalParameter parameter = parameters.getBindableParameter(index);
-        if (expectsCollection(type) && !parameterIsCollectionLike(parameter)) {
-            String message = wrongParameterTypeMessage(methodName, property, type, "Collection", parameter);
-            throw new IllegalStateException(message);
-        } else if (!expectsCollection(type) && !parameterIsScalarLike(parameter)) {
-            String message = wrongParameterTypeMessage(methodName, property, type, "scalar", parameter);
-            throw new IllegalStateException(message);
-        }
-    }
+		RelationalParameters.RelationalParameter parameter = parameters.getBindableParameter(index);
+		if (expectsCollection(type) && !parameterIsCollectionLike(parameter)) {
+			String message = wrongParameterTypeMessage(methodName, property, type, "Collection", parameter);
+			throw new IllegalStateException(message);
+		} else if (!expectsCollection(type) && !parameterIsScalarLike(parameter)) {
+			String message = wrongParameterTypeMessage(methodName, property, type, "scalar", parameter);
+			throw new IllegalStateException(message);
+		}
+	}
 
-    private static boolean expectsCollection(Part.Type type) {
-        return type == Part.Type.IN || type == Part.Type.NOT_IN;
-    }
+	private static boolean expectsCollection(Part.Type type) {
+		return type == Part.Type.IN || type == Part.Type.NOT_IN;
+	}
 
-    private static boolean parameterIsCollectionLike(RelationalParameters.RelationalParameter parameter) {
-        return Iterable.class.isAssignableFrom(parameter.getType()) || parameter.getType().isArray();
-    }
+	private static boolean parameterIsCollectionLike(RelationalParameters.RelationalParameter parameter) {
+		return Iterable.class.isAssignableFrom(parameter.getType()) || parameter.getType().isArray();
+	}
 
-    private static boolean parameterIsScalarLike(RelationalParameters.RelationalParameter parameter) {
-        return !Iterable.class.isAssignableFrom(parameter.getType());
-    }
+	private static boolean parameterIsScalarLike(RelationalParameters.RelationalParameter parameter) {
+		return !Iterable.class.isAssignableFrom(parameter.getType());
+	}
 
-    private static String wrongParameterTypeMessage(String methodName,
-                                                    String property,
-                                                    Part.Type operatorType,
-                                                    String expectedArgumentType,
-                                                    RelationalParameters.RelationalParameter parameter) {
-        return String.format("Operator %s on %s requires a %s argument, found %s in method %s.", operatorType.name(),
-                property, expectedArgumentType, parameter.getType(), methodName);
-    }
+	private static String wrongParameterTypeMessage(String methodName, String property, Part.Type operatorType,
+			String expectedArgumentType, RelationalParameters.RelationalParameter parameter) {
+		return String.format("Operator %s on %s requires a %s argument, found %s in method %s.", operatorType.name(),
+				property, expectedArgumentType, parameter.getType(), methodName);
+	}
 }

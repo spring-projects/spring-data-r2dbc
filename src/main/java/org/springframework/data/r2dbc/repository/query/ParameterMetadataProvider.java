@@ -15,16 +15,16 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Helper class to allow easy creation of {@link ParameterMetadata}s.
@@ -35,85 +35,80 @@ import java.util.List;
  * @author Roman Chigvintsev
  */
 class ParameterMetadataProvider {
-    private static final Object VALUE_PLACEHOLDER = new Object();
+	private static final Object VALUE_PLACEHOLDER = new Object();
 
-    private final Iterator<? extends Parameter> bindableParameterIterator;
-    @Nullable
-    private final Iterator<Object> bindableParameterValueIterator;
-    private final List<ParameterMetadata> parameterMetadata = new ArrayList<>();
-    private final LikeEscaper likeEscaper;
+	private final Iterator<? extends Parameter> bindableParameterIterator;
+	@Nullable private final Iterator<Object> bindableParameterValueIterator;
+	private final List<ParameterMetadata> parameterMetadata = new ArrayList<>();
+	private final LikeEscaper likeEscaper;
 
-    /**
-     * Creates new instance of this class with the given {@link RelationalParameterAccessor} and {@link LikeEscaper}.
-     *
-     * @param accessor relational parameter accessor (must not be {@literal null}).
-     * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
-     */
-    ParameterMetadataProvider(RelationalParameterAccessor accessor, LikeEscaper likeEscaper) {
-        this(accessor.getBindableParameters(), accessor.iterator(), likeEscaper);
-    }
+	/**
+	 * Creates new instance of this class with the given {@link RelationalParameterAccessor} and {@link LikeEscaper}.
+	 *
+	 * @param accessor relational parameter accessor (must not be {@literal null}).
+	 * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
+	 */
+	ParameterMetadataProvider(RelationalParameterAccessor accessor, LikeEscaper likeEscaper) {
+		this(accessor.getBindableParameters(), accessor.iterator(), likeEscaper);
+	}
 
-    /**
-     * Creates new instance of this class with the given {@link Parameters} and {@link LikeEscaper}.
-     *
-     * @param parameters  method parameters (must not be {@literal null})
-     * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
-     */
-    ParameterMetadataProvider(Parameters<?, ?> parameters, LikeEscaper likeEscaper) {
-        this(parameters, null, likeEscaper);
-    }
+	/**
+	 * Creates new instance of this class with the given {@link Parameters} and {@link LikeEscaper}.
+	 *
+	 * @param parameters method parameters (must not be {@literal null})
+	 * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
+	 */
+	ParameterMetadataProvider(Parameters<?, ?> parameters, LikeEscaper likeEscaper) {
+		this(parameters, null, likeEscaper);
+	}
 
-    /**
-     * Creates new instance of this class with the given {@link Parameters}, {@link Iterator} over all bindable
+	/**
+	 * Creates new instance of this class with the given {@link Parameters}, {@link Iterator} over all bindable
      * parameter values and {@link LikeEscaper}.
-     *
-     * @param bindableParameterValueIterator iterator over bindable parameter values
-     * @param parameters                     method parameters (must not be {@literal null})
-     * @param likeEscaper                    escaper for LIKE operator parameters (must not be {@literal null})
-     */
-    private ParameterMetadataProvider(Parameters<?, ?> parameters,
-                                      @Nullable Iterator<Object> bindableParameterValueIterator,
-                                      LikeEscaper likeEscaper) {
-        Assert.notNull(parameters, "Parameters must not be null!");
-        Assert.notNull(likeEscaper, "Like escaper must not be null!");
+	 *
+	 * @param bindableParameterValueIterator iterator over bindable parameter values
+	 * @param parameters method parameters (must not be {@literal null})
+	 * @param likeEscaper escaper for LIKE operator parameters (must not be {@literal null})
+	 */
+	private ParameterMetadataProvider(Parameters<?, ?> parameters,
+			@Nullable Iterator<Object> bindableParameterValueIterator, LikeEscaper likeEscaper) {
+		Assert.notNull(parameters, "Parameters must not be null!");
+		Assert.notNull(likeEscaper, "Like escaper must not be null!");
 
-        this.bindableParameterIterator = parameters.getBindableParameters().iterator();
-        this.bindableParameterValueIterator = bindableParameterValueIterator;
-        this.likeEscaper = likeEscaper;
-    }
+		this.bindableParameterIterator = parameters.getBindableParameters().iterator();
+		this.bindableParameterValueIterator = bindableParameterValueIterator;
+		this.likeEscaper = likeEscaper;
+	}
 
-    /**
-     * Creates new instance of {@link ParameterMetadata} for the given {@link Part} and next {@link Parameter}.
-     */
-    public ParameterMetadata next(Part part) {
-        Assert.isTrue(bindableParameterIterator.hasNext(),
-                () -> String.format("No parameter available for part %s.", part));
-        Parameter parameter = bindableParameterIterator.next();
-        ParameterMetadata metadata = ParameterMetadata.builder()
-                .type(parameter.getType())
-                .partType(part.getType())
-                .name(getParameterName(parameter, part.getProperty().getSegment()))
-                .isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
-                .likeEscaper(likeEscaper)
-                .build();
-        parameterMetadata.add(metadata);
-        return metadata;
-    }
+	/**
+	 * Creates new instance of {@link ParameterMetadata} for the given {@link Part} and next {@link Parameter}.
+	 */
+	public ParameterMetadata next(Part part) {
+		Assert.isTrue(bindableParameterIterator.hasNext(),
+				() -> String.format("No parameter available for part %s.", part));
+		Parameter parameter = bindableParameterIterator.next();
+		ParameterMetadata metadata = ParameterMetadata.builder().type(parameter.getType()).partType(part.getType())
+				.name(getParameterName(parameter, part.getProperty().getSegment()))
+				.isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
+				.likeEscaper(likeEscaper).build();
+		parameterMetadata.add(metadata);
+		return metadata;
+	}
 
-    public ParameterMetadata getParameterMetadata(int index) {
-        return parameterMetadata.get(index);
-    }
+	public ParameterMetadata getParameterMetadata(int index) {
+		return parameterMetadata.get(index);
+	}
 
-    @Nullable
-    private String getParameterName(Parameter parameter, String defaultName) {
-        if (parameter.isExplicitlyNamed()) {
-            return parameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named"));
-        }
-        return defaultName;
-    }
+	@Nullable
+	private String getParameterName(Parameter parameter, String defaultName) {
+		if (parameter.isExplicitlyNamed()) {
+			return parameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named"));
+		}
+		return defaultName;
+	}
 
-    @Nullable
-    private Object getParameterValue() {
-        return bindableParameterValueIterator == null ? VALUE_PLACEHOLDER : bindableParameterValueIterator.next();
-    }
+	@Nullable
+	private Object getParameterValue() {
+		return bindableParameterValueIterator == null ? VALUE_PLACEHOLDER : bindableParameterValueIterator.next();
+	}
 }

@@ -15,6 +15,10 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -25,103 +29,96 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
-
 /**
  * @author Roman Chigvintsev
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PartTreeBindableQueryTest {
-    @Mock
-    private RelationalParameterAccessor parameterAccessor;
-    @Mock
-    private ParameterMetadataProvider parameterMetadataProvider;
-    @Mock
-    private ParameterMetadata parameterMetadata;
+	@Mock private RelationalParameterAccessor parameterAccessor;
+	@Mock private ParameterMetadataProvider parameterMetadataProvider;
+	@Mock private ParameterMetadata parameterMetadata;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+	@Rule public ExpectedException thrown = ExpectedException.none();
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    @Before
-    public void setUp() {
-        doReturn(String.class).when(parameterMetadata).getType();
-        when(parameterMetadata.prepare(any())).thenCallRealMethod();
-        when(parameterMetadataProvider.getParameterMetadata(anyInt())).thenReturn(parameterMetadata);
-    }
+	@SuppressWarnings("ResultOfMethodCallIgnored")
+	@Before
+	public void setUp() {
+		doReturn(String.class).when(parameterMetadata).getType();
+		when(parameterMetadata.prepare(any())).thenCallRealMethod();
+		when(parameterMetadataProvider.getParameterMetadata(anyInt())).thenReturn(parameterMetadata);
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void bindsNonNullValueToQueryParameterByIndex() {
-        when(parameterAccessor.getValues()).thenReturn(new Object[]{"test"});
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-        verify(bindSpecMock, times(1)).bind(0, "test");
-    }
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void bindsNonNullValueToQueryParameterByIndex() {
+		when(parameterAccessor.getValues()).thenReturn(new Object[] { "test" });
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+		verify(bindSpecMock, times(1)).bind(0, "test");
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void bindsNonNullValueToQueryParameterByName() {
-        when(parameterAccessor.getValues()).thenReturn(new Object[]{"test"});
-        when(parameterMetadata.getName()).thenReturn("param0");
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void bindsNonNullValueToQueryParameterByName() {
+		when(parameterAccessor.getValues()).thenReturn(new Object[] { "test" });
+		when(parameterMetadata.getName()).thenReturn("param0");
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-        verify(bindSpecMock, times(1)).bind("param0", "test");
-    }
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+		verify(bindSpecMock, times(1)).bind("param0", "test");
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void bindsNullValueToQueryParameterByIndex() {
-        when(parameterAccessor.getValues()).thenReturn(new Object[1]);
-        when(parameterMetadata.isIsNullParameter()).thenReturn(true);
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void bindsNullValueToQueryParameterByIndex() {
+		when(parameterAccessor.getValues()).thenReturn(new Object[1]);
+		when(parameterMetadata.isIsNullParameter()).thenReturn(true);
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-        verify(bindSpecMock, times(1)).bindNull(0, String.class);
-    }
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+		verify(bindSpecMock, times(1)).bindNull(0, String.class);
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void bindsNullValueToQueryParameterByName() {
-        when(parameterAccessor.getValues()).thenReturn(new Object[1]);
-        when(parameterMetadata.getName()).thenReturn("param0");
-        when(parameterMetadata.isIsNullParameter()).thenReturn(true);
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void bindsNullValueToQueryParameterByName() {
+		when(parameterAccessor.getValues()).thenReturn(new Object[1]);
+		when(parameterMetadata.getName()).thenReturn("param0");
+		when(parameterMetadata.isIsNullParameter()).thenReturn(true);
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-        verify(bindSpecMock, times(1)).bindNull("param0", String.class);
-    }
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+		verify(bindSpecMock, times(1)).bindNull("param0", String.class);
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void throwsExceptionWhenNullIsNotAllowedAsIndexedQueryParameter() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Value of parameter with index 0 must not be null!");
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void throwsExceptionWhenNullIsNotAllowedAsIndexedQueryParameter() {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("Value of parameter with index 0 must not be null!");
 
-        when(parameterAccessor.getValues()).thenReturn(new Object[1]);
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+		when(parameterAccessor.getValues()).thenReturn(new Object[1]);
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-    }
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+	}
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Test
-    public void throwsExceptionWhenNullIsNotAllowedAsNamedQueryParameter() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("Value of parameter with name param0 must not be null!");
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Test
+	public void throwsExceptionWhenNullIsNotAllowedAsNamedQueryParameter() {
+		thrown.expect(IllegalArgumentException.class);
+		thrown.expectMessage("Value of parameter with name param0 must not be null!");
 
-        when(parameterAccessor.getValues()).thenReturn(new Object[1]);
-        when(parameterMetadata.getName()).thenReturn("param0");
-        DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+		when(parameterAccessor.getValues()).thenReturn(new Object[1]);
+		when(parameterMetadata.getName()).thenReturn("param0");
+		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 
-        PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
-        query.bind(bindSpecMock);
-    }
+		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
+		query.bind(bindSpecMock);
+	}
 }

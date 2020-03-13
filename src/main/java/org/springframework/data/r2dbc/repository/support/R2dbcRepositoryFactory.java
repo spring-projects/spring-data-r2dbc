@@ -139,9 +139,8 @@ public class R2dbcRepositoryFactory extends ReactiveRepositoryFactorySupport {
 		private final ReactiveDataAccessStrategy dataAccessStrategy;
 
 		R2dbcQueryLookupStrategy(DatabaseClient databaseClient,
-								 QueryMethodEvaluationContextProvider evaluationContextProvider,
-								 R2dbcConverter converter,
-								 ReactiveDataAccessStrategy dataAccessStrategy) {
+				QueryMethodEvaluationContextProvider evaluationContextProvider, R2dbcConverter converter,
+				ReactiveDataAccessStrategy dataAccessStrategy) {
 			this.databaseClient = databaseClient;
 			this.evaluationContextProvider = evaluationContextProvider;
 			this.converter = converter;

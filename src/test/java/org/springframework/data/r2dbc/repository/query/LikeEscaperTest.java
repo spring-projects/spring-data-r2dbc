@@ -15,16 +15,16 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import org.junit.Test;
 
 /**
  * @author Roman Chigvintsev
  */
 public class LikeEscaperTest {
-    @Test
-    public void ignoresNulls() {
-        assertNull(LikeEscaper.DEFAULT.escape(null));
-    }
+	@Test
+	public void ignoresNulls() {
+		assertNull(LikeEscaper.DEFAULT.escape(null));
+	}
 }

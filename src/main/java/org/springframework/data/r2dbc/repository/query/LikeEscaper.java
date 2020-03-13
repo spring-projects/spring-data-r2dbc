@@ -15,10 +15,10 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
-import org.springframework.lang.Nullable;
-
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.lang.Nullable;
 
 /**
  * Helper class encapsulating an escape character for LIKE queries and the actually usage of it in escaping
@@ -30,37 +30,37 @@ import java.util.List;
  * @author Roman Chigvintsev
  */
 public class LikeEscaper {
-    public static final LikeEscaper DEFAULT = LikeEscaper.of('\\');
+	public static final LikeEscaper DEFAULT = LikeEscaper.of('\\');
 
-    private final char escapeCharacter;
-    private final List<String> toReplace;
+	private final char escapeCharacter;
+	private final List<String> toReplace;
 
-    private LikeEscaper(char escapeCharacter) {
-        this.escapeCharacter = escapeCharacter;
-        this.toReplace = Arrays.asList(String.valueOf(escapeCharacter), "_", "%");
-    }
+	private LikeEscaper(char escapeCharacter) {
+		this.escapeCharacter = escapeCharacter;
+		this.toReplace = Arrays.asList(String.valueOf(escapeCharacter), "_", "%");
+	}
 
-    /**
-     * Creates new instance of this class with the given escape character.
-     *
-     * @param escapeCharacter escape character
-     * @return new instance of {@link LikeEscaper}
-     */
-    public static LikeEscaper of(char escapeCharacter) {
-        return new LikeEscaper(escapeCharacter);
-    }
+	/**
+	 * Creates new instance of this class with the given escape character.
+	 *
+	 * @param escapeCharacter escape character
+	 * @return new instance of {@link LikeEscaper}
+	 */
+	public static LikeEscaper of(char escapeCharacter) {
+		return new LikeEscaper(escapeCharacter);
+	}
 
-    /**
-     * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
-     *
-     * @param value value to be escaped
-     * @return escaped value
-     */
-    @Nullable
-    public String escape(@Nullable String value) {
-        if (value == null) {
-            return null;
-        }
-        return toReplace.stream().reduce(value, (it, character) -> it.replace(character, escapeCharacter + character));
-    }
+	/**
+	 * Escapes all special like characters ({@code _}, {@code %}) using the configured escape character.
+	 *
+	 * @param value value to be escaped
+	 * @return escaped value
+	 */
+	@Nullable
+	public String escape(@Nullable String value) {
+		if (value == null) {
+			return null;
+		}
+		return toReplace.stream().reduce(value, (it, character) -> it.replace(character, escapeCharacter + character));
+	}
 }
