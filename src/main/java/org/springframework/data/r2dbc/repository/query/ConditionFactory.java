@@ -239,7 +239,8 @@ class ConditionFactory {
 			Assert.notNull(expression, "Expression must not be null!");
 			String functionArgument;
 			if (expression instanceof BindMarker) {
-				functionArgument = expression instanceof Named ? ((Named) expression).getName() : expression.toString();
+				functionArgument = expression instanceof Named ? ((Named) expression).getName().getReference()
+						: expression.toString();
 			} else if (expression instanceof Column) {
 				functionArgument = "";
 				Table table = ((Column) expression).getTable();
