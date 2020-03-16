@@ -28,6 +28,8 @@ import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Streamable;
 
+import java.util.Collection;
+
 /**
  * An {@link AbstractR2dbcQuery} implementation based on a {@link PartTree}.
  * <p>
@@ -126,11 +128,11 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 	}
 
 	private static boolean parameterIsCollectionLike(RelationalParameters.RelationalParameter parameter) {
-		return Iterable.class.isAssignableFrom(parameter.getType()) || parameter.getType().isArray();
+		return parameter.getType().isArray() || Collection.class.isAssignableFrom(parameter.getType());
 	}
 
 	private static boolean parameterIsScalarLike(RelationalParameters.RelationalParameter parameter) {
-		return !Iterable.class.isAssignableFrom(parameter.getType());
+		return !Collection.class.isAssignableFrom(parameter.getType());
 	}
 
 	private static String wrongParameterTypeMessage(String methodName, String property, Part.Type operatorType,
