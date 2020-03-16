@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * @author Roman Chigvintsev
  */
-public class LikeEscaperTest {
+public class LikeEscaperUnitTests {
 	@Test
 	public void ignoresNulls() {
 		assertNull(LikeEscaper.DEFAULT.escape(null));

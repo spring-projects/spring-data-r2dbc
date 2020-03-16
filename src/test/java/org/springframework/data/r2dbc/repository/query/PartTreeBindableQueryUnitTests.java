@@ -33,7 +33,7 @@ import org.springframework.data.relational.repository.query.RelationalParameterA
  * @author Roman Chigvintsev
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PartTreeBindableQueryTest {
+public class PartTreeBindableQueryUnitTests {
 	@Mock private RelationalParameterAccessor parameterAccessor;
 	@Mock private ParameterMetadataProvider parameterMetadataProvider;
 	@Mock private ParameterMetadata parameterMetadata;
@@ -53,6 +53,7 @@ public class PartTreeBindableQueryTest {
 	public void bindsNonNullValueToQueryParameterByIndex() {
 		when(parameterAccessor.getValues()).thenReturn(new Object[] { "test" });
 		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
+
 		PartTreeBindableQuery query = new PartTreeBindableQuery("SELECT", parameterAccessor, parameterMetadataProvider);
 		query.bind(bindSpecMock);
 		verify(bindSpecMock, times(1)).bind(0, "test");
