@@ -15,6 +15,7 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.Test;
@@ -26,5 +27,45 @@ public class LikeEscaperUnitTests {
 	@Test
 	public void ignoresNulls() {
 		assertNull(LikeEscaper.DEFAULT.escape(null));
+	}
+
+	@Test
+	public void ignoresEmptyString() {
+		assertThat(LikeEscaper.DEFAULT.escape("")).isEqualTo("");
+	}
+
+	@Test
+	public void ignoresBlankString() {
+		assertThat(LikeEscaper.DEFAULT.escape(" ")).isEqualTo(" ");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void throwsExceptionWhenEscapeCharacterIsUnderscore() {
+		LikeEscaper.of('_');
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void throwsExceptionWhenEscapeCharacterIsPercent() {
+		LikeEscaper.of('%');
+	}
+
+	@Test
+	public void escapesUnderscoresUsingDefaultEscapeCharacter() {
+		assertThat(LikeEscaper.DEFAULT.escape("_test_")).isEqualTo("\\_test\\_");
+	}
+
+	@Test
+	public void escapesPercentsUsingDefaultEscapeCharacter() {
+		assertThat(LikeEscaper.DEFAULT.escape("%test%")).isEqualTo("\\%test\\%");
+	}
+
+	@Test
+	public void escapesSpecialCharactersUsingCustomEscapeCharacter() {
+		assertThat(LikeEscaper.of('$').escape("_%")).isEqualTo("$_$%");
+	}
+
+	@Test
+	public void doublesEscapeCharacter() {
+		assertThat(LikeEscaper.DEFAULT.escape("\\")).isEqualTo("\\\\");
 	}
 }

@@ -36,6 +36,10 @@ public class LikeEscaper {
 	private final List<String> toReplace;
 
 	private LikeEscaper(char escapeCharacter) {
+		if (escapeCharacter == '_' || escapeCharacter == '%') {
+			throw new IllegalArgumentException("'_' and '%' are special characters and cannot be used as "
+					+ "escape character");
+		}
 		this.escapeCharacter = escapeCharacter;
 		this.toReplace = Arrays.asList(String.valueOf(escapeCharacter), "_", "%");
 	}
@@ -45,6 +49,7 @@ public class LikeEscaper {
 	 *
 	 * @param escapeCharacter escape character
 	 * @return new instance of {@link LikeEscaper}
+	 * @throws IllegalArgumentException if escape character is one of special characters ('_' and '%')
 	 */
 	public static LikeEscaper of(char escapeCharacter) {
 		return new LikeEscaper(escapeCharacter);
