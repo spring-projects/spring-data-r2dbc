@@ -131,6 +131,8 @@ public class R2dbcQueryCreator extends AbstractQueryCreator<String, Condition> {
 
 		if (tree.isExistsProjection()) {
 			selectBuilder.limit(1);
+		} else if (tree.isLimiting()) {
+			selectBuilder.limit(tree.getMaxResults());
 		}
 
 		if (condition != null) {

@@ -515,6 +515,30 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[0]));
 	}
 
+	@Test
+	public void createsQueryWithLimitToFindEntitiesByStringAttribute() throws Exception {
+		R2dbcQueryMethod queryMethod = getQueryMethod("findTop3ByFirstName", String.class);
+		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+				dataAccessStrategy);
+		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
+		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+				+ " WHERE " + TABLE + ".first_name = :firstName LIMIT 3";
+		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+	}
+
+	@Test
+	public void createsQueryToFindFirstEntityByStringAttribute() throws Exception {
+		R2dbcQueryMethod queryMethod = getQueryMethod("findFirstByFirstName", String.class);
+		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
+				dataAccessStrategy);
+		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
+		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+				+ " WHERE " + TABLE + ".first_name = :firstName LIMIT 1";
+		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
+	}
+
 	private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
 		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
 		return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
@@ -587,6 +611,10 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		Flux<User> findAllById(Collection<Long> ids);
 
 		Flux<User> findAllByIdIsEmpty();
+
+		Flux<User> findTop3ByFirstName(String firstName);
+
+		Mono<User> findFirstByFirstName(String firstName);
 	}
 
 	@Table("users")
