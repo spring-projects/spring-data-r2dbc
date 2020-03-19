@@ -15,7 +15,7 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
-import lombok.Setter;
+import java.util.Collection;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
@@ -27,8 +27,6 @@ import org.springframework.data.relational.repository.query.RelationalParameters
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.PartTree;
 import org.springframework.data.util.Streamable;
-
-import java.util.Collection;
 
 /**
  * An {@link AbstractR2dbcQuery} implementation based on a {@link PartTree}.
@@ -43,7 +41,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 	private final RelationalParameters parameters;
 	private final PartTree tree;
 
-	@Setter private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
+	private LikeEscaper likeEscaper = LikeEscaper.DEFAULT;
 
 	/**
 	 * Creates new instance of this class with the given {@link R2dbcQueryMethod}, {@link DatabaseClient},
@@ -67,6 +65,10 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 			String message = String.format("Failed to create query for method %s! %s", method, e.getMessage());
 			throw new IllegalArgumentException(message, e);
 		}
+	}
+
+	public void setLikeEscaper(LikeEscaper likeEscaper) {
+		this.likeEscaper = likeEscaper;
 	}
 
 	/**

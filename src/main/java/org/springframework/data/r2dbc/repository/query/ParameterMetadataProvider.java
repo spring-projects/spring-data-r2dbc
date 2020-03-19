@@ -87,10 +87,13 @@ class ParameterMetadataProvider {
 		Assert.isTrue(bindableParameterIterator.hasNext(),
 				() -> String.format("No parameter available for part %s.", part));
 		Parameter parameter = bindableParameterIterator.next();
-		ParameterMetadata metadata = ParameterMetadata.builder().type(parameter.getType()).partType(part.getType())
+		ParameterMetadata metadata = ParameterMetadata.builder()
+				.type(parameter.getType())
+				.partType(part.getType())
 				.name(getParameterName(parameter, part.getProperty().getSegment()))
 				.isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
-				.likeEscaper(likeEscaper).build();
+				.likeEscaper(likeEscaper)
+				.build();
 		parameterMetadata.add(metadata);
 		return metadata;
 	}
@@ -99,7 +102,6 @@ class ParameterMetadataProvider {
 		return parameterMetadata.get(index);
 	}
 
-	@Nullable
 	private String getParameterName(Parameter parameter, String defaultName) {
 		if (parameter.isExplicitlyNamed()) {
 			return parameter.getName().orElseThrow(() -> new IllegalArgumentException("Parameter needs to be named"));

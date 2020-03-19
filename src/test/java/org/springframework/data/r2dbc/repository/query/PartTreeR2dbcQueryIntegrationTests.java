@@ -20,7 +20,6 @@ import static org.mockito.Mockito.*;
 
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryMetadata;
-import lombok.Data;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -618,7 +617,6 @@ public class PartTreeR2dbcQueryIntegrationTests {
 	}
 
 	@Table("users")
-	@Data
 	private static class User {
 		@Id private Long id;
 		private String firstName;
@@ -626,5 +624,53 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		private Date dateOfBirth;
 		private Integer age;
 		private Boolean active;
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public String getFirstName() {
+			return firstName;
+		}
+
+		public void setFirstName(String firstName) {
+			this.firstName = firstName;
+		}
+
+		public String getLastName() {
+			return lastName;
+		}
+
+		public void setLastName(String lastName) {
+			this.lastName = lastName;
+		}
+
+		public Date getDateOfBirth() {
+			return dateOfBirth;
+		}
+
+		public void setDateOfBirth(Date dateOfBirth) {
+			this.dateOfBirth = dateOfBirth;
+		}
+
+		public Integer getAge() {
+			return age;
+		}
+
+		public void setAge(Integer age) {
+			this.age = age;
+		}
+
+		public Boolean getActive() {
+			return active;
+		}
+
+		public void setActive(Boolean active) {
+			this.active = active;
+		}
 	}
 }
