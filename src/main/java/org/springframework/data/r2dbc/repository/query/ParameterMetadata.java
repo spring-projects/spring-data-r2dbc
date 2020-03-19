@@ -46,12 +46,12 @@ class ParameterMetadata {
 		if (String.class.equals(type)) {
 			switch (partType) {
 				case STARTING_WITH:
-					return String.format("%s%%", likeEscaper.escape(value.toString()));
+					return likeEscaper.escape(value.toString()) + "%";
 				case ENDING_WITH:
-					return String.format("%%%s", likeEscaper.escape(value.toString()));
+					return "%" + likeEscaper.escape(value.toString());
 				case CONTAINING:
 				case NOT_CONTAINING:
-					return String.format("%%%s%%", likeEscaper.escape(value.toString()));
+					return "%" + likeEscaper.escape(value.toString()) + "%";
 				default:
 					return value;
 			}
