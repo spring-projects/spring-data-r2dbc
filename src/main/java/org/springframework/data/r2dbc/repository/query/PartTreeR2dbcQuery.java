@@ -20,6 +20,7 @@ import java.util.Collection;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
+import org.springframework.data.r2dbc.core.PreparedOperation;
 import org.springframework.data.r2dbc.core.ReactiveDataAccessStrategy;
 import org.springframework.data.relational.repository.query.RelationalEntityMetadata;
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
@@ -83,8 +84,8 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 		ParameterMetadataProvider parameterMetadataProvider = new ParameterMetadataProvider(accessor, likeEscaper);
 		R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata,
 				parameterMetadataProvider);
-		String sql = queryCreator.createQuery(getDynamicSort(accessor));
-		return new PartTreeBindableQuery(sql, accessor, parameterMetadataProvider);
+		PreparedOperation<?> preparedQuery = queryCreator.createQuery(getDynamicSort(accessor));
+		return new PreparedOperationBindableQuery(preparedQuery);
 	}
 
 	private Sort getDynamicSort(RelationalParameterAccessor accessor) {

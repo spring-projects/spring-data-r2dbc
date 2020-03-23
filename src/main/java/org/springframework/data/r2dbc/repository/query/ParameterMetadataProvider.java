@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.relational.repository.query.RelationalParameterAccessor;
 import org.springframework.data.repository.query.Parameter;
 import org.springframework.data.repository.query.Parameters;
@@ -34,7 +35,7 @@ import org.springframework.util.Assert;
  *
  * @author Roman Chigvintsev
  */
-class ParameterMetadataProvider {
+class ParameterMetadataProvider implements Iterable<ParameterMetadata> {
 	private static final Object VALUE_PLACEHOLDER = new Object();
 
 	private final Iterator<? extends Parameter> bindableParameterIterator;
@@ -80,6 +81,12 @@ class ParameterMetadataProvider {
 		this.likeEscaper = likeEscaper;
 	}
 
+	@NotNull
+	@Override
+	public Iterator<ParameterMetadata> iterator() {
+		return parameterMetadata.iterator();
+	}
+
 	/**
 	 * Creates new instance of {@link ParameterMetadata} for the given {@link Part} and next {@link Parameter}.
 	 */
@@ -87,19 +94,17 @@ class ParameterMetadataProvider {
 		Assert.isTrue(bindableParameterIterator.hasNext(),
 				() -> String.format("No parameter available for part %s.", part));
 		Parameter parameter = bindableParameterIterator.next();
-		ParameterMetadata metadata = ParameterMetadata.builder()
-				.type(parameter.getType())
-				.partType(part.getType())
-				.name(getParameterName(parameter, part.getProperty().getSegment()))
-				.isNullParameter(getParameterValue() == null && Part.Type.SIMPLE_PROPERTY.equals(part.getType()))
-				.likeEscaper(likeEscaper)
-				.build();
+		String parameterName = getParameterName(parameter, part.getProperty().getSegment());
+		Object parameterValue = getParameterValue();
+		Part.Type partType = part.getType();
+
+		checkNullIsAllowed(parameterName, parameterValue, partType);
+		Class<?> parameterType = parameter.getType();
+		Object preparedParameterValue = prepareParameterValue(parameterValue, parameterType, partType);
+
+		ParameterMetadata metadata = new ParameterMetadata(parameterName, preparedParameterValue, parameterType);
 		parameterMetadata.add(metadata);
 		return metadata;
-	}
-
-	public ParameterMetadata getParameterMetadata(int index) {
-		return parameterMetadata.get(index);
 	}
 
 	private String getParameterName(Parameter parameter, String defaultName) {
@@ -112,5 +117,42 @@ class ParameterMetadataProvider {
 	@Nullable
 	private Object getParameterValue() {
 		return bindableParameterValueIterator == null ? VALUE_PLACEHOLDER : bindableParameterValueIterator.next();
+	}
+
+	/**
+	 * Checks whether {@literal null} is allowed as parameter value.
+	 *
+	 * @param parameterName parameter name
+	 * @param parameterValue parameter value
+	 * @param partType method name part type (must not be {@literal null})
+	 * @throws IllegalArgumentException if {@literal null} is not allowed as parameter value
+	 */
+	private void checkNullIsAllowed(String parameterName, @Nullable Object parameterValue, Part.Type partType) {
+		if (parameterValue == null && !Part.Type.SIMPLE_PROPERTY.equals(partType)) {
+			String message = String.format("Value of parameter with name %s must not be null!", parameterName);
+			throw new IllegalArgumentException(message);
+		}
+	}
+
+	/**
+	 * Prepares parameter value before it's actually bound to the query.
+	 *
+	 * @param value must not be {@literal null}
+	 * @return prepared query parameter value
+	 */
+	@Nullable
+	protected Object prepareParameterValue(@Nullable Object value, Class<?> valueType, Part.Type partType) {
+		if (value != null && String.class == valueType) {
+			switch (partType) {
+				case STARTING_WITH:
+					return likeEscaper.escape(value.toString()) + "%";
+				case ENDING_WITH:
+					return "%" + likeEscaper.escape(value.toString());
+				case CONTAINING:
+				case NOT_CONTAINING:
+					return "%" + likeEscaper.escape(value.toString()) + "%";
+			}
+		}
+		return value;
 	}
 }

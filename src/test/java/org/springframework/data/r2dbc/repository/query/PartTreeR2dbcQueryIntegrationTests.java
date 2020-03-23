@@ -78,6 +78,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		when(metadataMock.getName()).thenReturn("PostgreSQL");
 		when(connectionFactory.getMetadata()).thenReturn(metadataMock);
 
+		when(r2dbcConverter.writeValue(any(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+
 		mappingContext = new R2dbcMappingContext();
 		doReturn(mappingContext).when(r2dbcConverter).getMappingContext();
 
@@ -94,7 +96,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
 				dataAccessStrategy);
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[] { "John" }));
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -114,8 +116,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
 				dataAccessStrategy);
 		BindableQuery query = r2dbcQuery.createQuery((getAccessor(queryMethod, new Object[] { "John" })));
-		String expectedSql = "SELECT " + TABLE + ".id FROM " + TABLE + " WHERE " + TABLE
-				+ ".first_name = :firstName LIMIT 1";
+		String expectedSql = "SELECT " + TABLE + ".id FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1 LIMIT 1";
 		assertThat(query.get()).isEqualTo(expectedSql);
 	}
 
@@ -126,7 +127,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[] { "Doe", "John" }));
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".last_name = :lastName AND " + TABLE + ".first_name = :firstName";
+				+ " WHERE " + TABLE + ".last_name = $1 AND (" + TABLE + ".first_name = $2)";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -137,7 +138,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(getAccessor(queryMethod, new Object[] { "Doe", "John" }));
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".last_name = :lastName OR " + TABLE + ".first_name = :firstName";
+				+ " WHERE " + TABLE + ".last_name = $1 OR (" + TABLE + ".first_name = $2)";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -146,10 +147,11 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBetween", Date.class, Date.class);
 		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
 				dataAccessStrategy);
-		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { new Date(), new Date() });
+		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod,
+				new Object[] { new Date(), new Date() });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".date_of_birth >= :dateOfBirth AND " + TABLE + ".date_of_birth <= :dateOfBirth";
+				+ " WHERE " + TABLE + ".date_of_birth >= $1 AND " + TABLE + ".date_of_birth <= $2";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -160,7 +162,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age < :age";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age < $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -171,7 +173,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age <= :age";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age <= $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -182,7 +184,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age > :age";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age > $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -193,7 +195,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age >= :age";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age >= $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -204,8 +206,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { new Date() });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
-				+ ".date_of_birth > :dateOfBirth";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth > $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -216,8 +217,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { new Date() });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
-				+ ".date_of_birth < :dateOfBirth";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth < $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -250,8 +250,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "%John%" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name LIKE :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -262,8 +261,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "%John%" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name NOT LIKE :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -274,8 +272,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "Jo" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name LIKE :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -289,7 +286,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 		bindableQuery.bind(bindSpecMock);
-		verify(bindSpecMock, times(1)).bind("firstName", "Jo%");
+		verify(bindSpecMock, times(1)).bind(0, "Jo%");
 	}
 
 	@Test
@@ -299,8 +296,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "hn" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name LIKE :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -314,7 +310,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 		bindableQuery.bind(bindSpecMock);
-		verify(bindSpecMock, times(1)).bind("firstName", "%hn");
+		verify(bindSpecMock, times(1)).bind(0, "%hn");
 	}
 
 	@Test
@@ -324,8 +320,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name LIKE :firstName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -339,7 +334,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 		bindableQuery.bind(bindSpecMock);
-		verify(bindSpecMock, times(1)).bind("firstName", "%oh%");
+		verify(bindSpecMock, times(1)).bind(0, "%oh%");
 	}
 
 	@Test
@@ -350,7 +345,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name NOT LIKE :firstName";
+				+ " WHERE " + TABLE + ".first_name NOT LIKE $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -364,7 +359,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		DatabaseClient.BindSpec bindSpecMock = mock(DatabaseClient.BindSpec.class);
 		bindableQuery.bind(bindSpecMock);
-		verify(bindSpecMock, times(1)).bind("firstName", "%oh%");
+		verify(bindSpecMock, times(1)).bind(0, "%oh%");
 	}
 
 	@Test
@@ -376,19 +371,20 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".age = :age ORDER BY last_name DESC";
+				+ " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name DESC";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
 	@Test
-	public void createsQueryToFindAllEntitiesByIntegerAttributeWithAscendingOrderingByStringAttribute() throws Exception {
+	public void createsQueryToFindAllEntitiesByIntegerAttributeWithAscendingOrderingByStringAttribute()
+			throws Exception {
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeOrderByLastNameAsc", Integer.class);
 		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, databaseClient, r2dbcConverter,
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".age = :age ORDER BY last_name ASC";
+				+ " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name ASC";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -399,7 +395,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "Doe" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".last_name != :lastName";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".last_name != $1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -411,7 +407,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod,
 				new Object[] { Collections.singleton(25) });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IN (:age)";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IN ($1)";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -423,7 +419,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod,
 				new Object[] { Collections.singleton(25) });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age NOT IN (:age)";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age NOT IN ($1)";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -456,8 +452,8 @@ public class PartTreeR2dbcQueryIntegrationTests {
 				dataAccessStrategy);
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
-		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE UPPER(" + TABLE
-				+ ".first_name) = UPPER(:firstName)";
+		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
+				+ " WHERE UPPER(" + TABLE + ".first_name) = UPPER($1)";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -522,7 +518,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name = :firstName LIMIT 3";
+				+ " WHERE " + TABLE + ".first_name = $1 LIMIT 3";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
@@ -534,7 +530,7 @@ public class PartTreeR2dbcQueryIntegrationTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		BindableQuery bindableQuery = r2dbcQuery.createQuery(accessor);
 		String expectedSql = "SELECT " + ALL_FIELDS + " FROM " + TABLE
-				+ " WHERE " + TABLE + ".first_name = :firstName LIMIT 1";
+				+ " WHERE " + TABLE + ".first_name = $1 LIMIT 1";
 		assertThat(bindableQuery.get()).isEqualTo(expectedSql);
 	}
 
