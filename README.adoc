@@ -18,6 +18,10 @@ Spring Data R2DBC aims at being conceptually easy. In order to achieve this it d
 * Support for Reactive Transactions
 * Schema and data initialization utilities.
 
+== Currently Unsupported Features
+
+* https://docs.spring.io/spring-data/data-commons/docs/current/reference/html/#auditing[Auditing] - https://github.com/spring-projects/spring-data-r2dbc/issues/281[#281]
+
 == Code of Conduct
 
 This project is governed by the link:CODE_OF_CONDUCT.adoc[Spring Code of Conduct]. By participating, you are expected to uphold this code of conduct. Please report unacceptable behavior to spring-code-of-conduct@pivotal.io.
