@@ -39,6 +39,7 @@ import org.springframework.util.Assert;
  *
  * @author Roman Chigvintsev
  * @author Mark Paluch
+ * @author Mingyuan Wu
  * @since 1.1
  */
 public class R2dbcQueryCreator extends RelationalQueryCreator<PreparedOperation<?>> {
@@ -102,6 +103,10 @@ public class R2dbcQueryCreator extends RelationalQueryCreator<PreparedOperation<
 
 		if (sort.isSorted()) {
 			selectSpec = selectSpec.withSort(getSort(sort));
+		}
+
+		if(tree.isDistinct()){
+			selectSpec = selectSpec.distinct(true);
 		}
 
 		return statementMapper.getMappedObject(selectSpec);
