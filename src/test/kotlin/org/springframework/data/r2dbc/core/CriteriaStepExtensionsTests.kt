@@ -20,12 +20,13 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Test
-import org.springframework.data.r2dbc.query.Criteria
+import org.springframework.data.relational.core.query.Criteria
 
 /**
  * Unit tests for [Criteria.CriteriaStep] extensions.
  *
  * @author Jonas Bark
+ * @author Mingyuan Wu
  */
 class CriteriaStepExtensionsTests {
 
