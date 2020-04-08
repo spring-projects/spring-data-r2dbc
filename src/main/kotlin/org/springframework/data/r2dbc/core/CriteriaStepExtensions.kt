@@ -15,7 +15,7 @@
  */
 package org.springframework.data.r2dbc.core
 
-import org.springframework.data.relational.core.query.Criteria
+import org.springframework.data.r2dbc.query.Criteria
 
 /**
  * Extension for [Criteria.CriteriaStep.is] providing a
