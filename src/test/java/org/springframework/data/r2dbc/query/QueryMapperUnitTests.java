@@ -22,6 +22,7 @@ import static org.springframework.data.domain.Sort.Order.*;
 import java.util.Collections;
 
 import org.junit.Test;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.MappingR2dbcConverter;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
@@ -31,6 +32,7 @@ import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.r2dbc.mapping.R2dbcMappingContext;
 import org.springframework.data.r2dbc.mapping.SettableValue;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.Functions;
 import org.springframework.data.relational.core.sql.Table;
@@ -39,6 +41,7 @@ import org.springframework.data.relational.core.sql.Table;
  * Unit tests for {@link QueryMapper}.
  *
  * @author Mark Paluch
+ * @author Mingyuan Wu
  */
 public class QueryMapperUnitTests {
 
