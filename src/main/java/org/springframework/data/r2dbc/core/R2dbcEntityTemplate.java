@@ -111,6 +111,15 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.springframework.data.r2dbc.core.R2dbcEntityOperations#getDataAccessStrategy()
+	 */
+	@Override
+	public ReactiveDataAccessStrategy getDataAccessStrategy() {
+		return this.dataAccessStrategy;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
 	 */
 	@Override
