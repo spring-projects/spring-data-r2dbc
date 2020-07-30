@@ -15,11 +15,13 @@
  */
 package org.springframework.data.r2dbc.repository.query;
 
+import kotlin.Unit;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.reactivestreams.Publisher;
-
+import org.springframework.core.KotlinDetector;
 import org.springframework.data.mapping.model.EntityInstantiators;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.DatabaseClient;
@@ -40,6 +42,7 @@ import org.springframework.util.Assert;
  * Base class for reactive {@link RepositoryQuery} implementations for R2DBC.
  *
  * @author Mark Paluch
+ * @author Stephen Cohen
  */
 public abstract class AbstractR2dbcQuery implements RepositoryQuery {
 
@@ -138,6 +141,10 @@ public abstract class AbstractR2dbcQuery implements RepositoryQuery {
 
 			if (Void.class.isAssignableFrom(returnedType.getReturnedType())) {
 				return (q, t, c) -> q.rowsUpdated().then();
+			}
+
+			if (KotlinDetector.isKotlinPresent() && Unit.class.isAssignableFrom(returnedType.getReturnedType())) {
+				return (q, t, c) -> q.rowsUpdated().thenReturn(Unit.INSTANCE);
 			}
 
 			return (q, t, c) -> q.rowsUpdated();
