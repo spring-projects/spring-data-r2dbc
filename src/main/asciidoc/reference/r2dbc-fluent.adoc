@@ -152,7 +152,7 @@ Mono<Void> insert = databaseClient.insert()
 <1> Start an insert into the `person` table.
 <2> Provide a non-null value for  `firstname`.
 <3> Set `lastname` to `null`.
-<3> Use `then()` to insert an object without consuming further details.
+<4> Use `then()` to insert an object without consuming further details.
 Modifying statements allow consumption of the number of affected rows or tabular results for consuming generated keys.
 ====
 
@@ -162,7 +162,7 @@ Modifying statements allow consumption of the number of affected rows or tabular
 The `insert()` entry point exposes the following additional methods to provide options for the operation:
 
 * *into* `(Class<T>)`: Specifies the target table using a mapped object.
-By default, it returns results as `T`.
+By default, it returns results as `Map<String, Object>`.
 * *into* `(String)`: Specifies the target table name.
 By default, it returns results as `Map<String, Object>`.
 * *using* `(T)`: Specifies the object to insert.
