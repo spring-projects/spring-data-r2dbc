@@ -457,7 +457,7 @@ public class QueryMapper {
 		}
 
 		Expression columnExpression = column;
-		if (ignoreCase && String.class == valueType) {
+		if (ignoreCase) {
 			columnExpression = Functions.upper(column);
 		}
 
