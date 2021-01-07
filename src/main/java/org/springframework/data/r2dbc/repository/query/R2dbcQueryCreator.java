@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2020-2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class R2dbcQueryCreator extends RelationalQueryCreator<PreparedOperation<?>> {
 	/**
 	 * Creates new instance of this class with the given {@link PartTree}, {@link ReactiveDataAccessStrategy},
 	 * {@link RelationalEntityMetadata} and {@link RelationalParameterAccessor}.
-	 * 
+	 *
 	 * @param tree part tree, must not be {@literal null}.
 	 * @param dataAccessStrategy data access strategy, must not be {@literal null}.
 	 * @param entityMetadata relational entity metadata, must not be {@literal null}.
