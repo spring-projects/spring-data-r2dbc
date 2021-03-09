@@ -392,8 +392,7 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 				.into(persistentEntity.getType()) //
 				.table(tableName).using(entityToInsert) //
 				.map(this.dataAccessStrategy.getConverter().populateIdIfNecessary(entityToInsert)) //
-				.first() //
-				.defaultIfEmpty(entityToInsert);
+				.all().last(entityToInsert); //
 	}
 
 	@SuppressWarnings("unchecked")
