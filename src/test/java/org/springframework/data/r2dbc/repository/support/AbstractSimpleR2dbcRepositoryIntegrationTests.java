@@ -23,6 +23,7 @@ import static org.springframework.data.domain.ExampleMatcher.StringMatcher.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -768,6 +769,24 @@ public abstract class AbstractSimpleR2dbcRepositoryIntegrationTests extends R2db
 		repositoryWithNonScalarId.exists(example) //
 				.as(StepVerifier::create) //
 				.expectNext(true) //
+				.verifyComplete();
+	}
+
+	@Test // issue-375
+	void shouldFindAllWithPage() {
+
+		jdbc.execute("INSERT INTO legoset (id, name, manual) VALUES(1, 'Moon space base', 12)");
+		jdbc.execute("INSERT INTO legoset (id, name, manual) VALUES(2, 'Mars space base', 13)");
+		jdbc.execute("INSERT INTO legoset (id, name, manual) VALUES(3, 'Moon construction kit', 14)");
+		jdbc.execute("INSERT INTO legoset (id, name, manual) VALUES(4, 'Mars construction kit', 15)");
+
+		LegoSetWithNonScalarId legoSet = new LegoSetWithNonScalarId();
+
+		legoSet.setName("Moon");
+		Example<LegoSetWithNonScalarId> exampleByStarting = Example.of(legoSet, matching().withStringMatcher(STARTING));
+
+		StepVerifier.create(repositoryWithNonScalarId.findAll(exampleByStarting, PageRequest.of(0, 10)))
+				.expectNextMatches(page->page.getTotalElements()==2 && page.getTotalPages()==1)
 				.verifyComplete();
 	}
 

@@ -15,6 +15,9 @@
  */
 package org.springframework.data.r2dbc.repository.support;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -48,6 +51,7 @@ import org.springframework.util.Assert;
  * @author Mingyuan Wu
  * @author Stephen Cohen
  * @author Greg Turnquist
+ * @author Manousos Mathioudakis
  */
 @Transactional(readOnly = true)
 public class SimpleR2dbcRepository<T, ID> implements R2dbcRepository<T, ID> {
@@ -385,12 +389,7 @@ public class SimpleR2dbcRepository<T, ID> implements R2dbcRepository<T, ID> {
 
 	@Override
 	public <S extends T> Mono<S> findOne(Example<S> example) {
-
-		Assert.notNull(example, "Example must not be null!");
-
-		Query query = this.exampleMapper.getMappedExample(example);
-
-		return this.entityOperations.selectOne(query, example.getProbeType());
+		return this.entityOperations.selectOne(getQuery(example), example.getProbeType());
 	}
 
 	@Override
@@ -403,33 +402,32 @@ public class SimpleR2dbcRepository<T, ID> implements R2dbcRepository<T, ID> {
 
 	@Override
 	public <S extends T> Flux<S> findAll(Example<S> example, Sort sort) {
-
-		Assert.notNull(example, "Example must not be null!");
 		Assert.notNull(sort, "Sort must not be null!");
 
-		Query query = this.exampleMapper.getMappedExample(example).sort(sort);
+		Query query = getQuery(example).sort(sort);
 
 		return this.entityOperations.select(query, example.getProbeType());
 	}
 
 	@Override
+	public <S extends T> Mono<Page<S>> findAll(Example<S> example, Pageable pageable){
+		Assert.notNull(pageable, "Sort must not be null!");
+
+		Query query = getQuery(example).with(pageable);
+		Flux<S> queryResult = this.entityOperations.select(query, example.getProbeType());
+
+		return queryResult.collectList()
+				.map(result -> (Page<S>) new PageImpl(result, pageable, result.size()));
+	}
+
+	@Override
 	public <S extends T> Mono<Long> count(Example<S> example) {
-
-		Assert.notNull(example, "Example must not be null!");
-
-		Query query = this.exampleMapper.getMappedExample(example);
-
-		return this.entityOperations.count(query, example.getProbeType());
+		return this.entityOperations.count(getQuery(example), example.getProbeType());
 	}
 
 	@Override
 	public <S extends T> Mono<Boolean> exists(Example<S> example) {
-
-		Assert.notNull(example, "Example must not be null!");
-
-		Query query = this.exampleMapper.getMappedExample(example);
-
-		return this.entityOperations.exists(query, example.getProbeType());
+		return this.entityOperations.exists(getQuery(example), example.getProbeType());
 	}
 
 	private RelationalPersistentProperty getIdProperty() {
@@ -438,5 +436,11 @@ public class SimpleR2dbcRepository<T, ID> implements R2dbcRepository<T, ID> {
 
 	private Query getIdQuery(Object id) {
 		return Query.query(Criteria.where(getIdProperty().getName()).is(id));
+	}
+
+	private <S extends T> Query getQuery(Example<S> example) {
+		Assert.notNull(example, "Example must not be null!");
+
+		return this.exampleMapper.getMappedExample(example);
 	}
 }

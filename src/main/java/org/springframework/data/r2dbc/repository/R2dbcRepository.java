@@ -15,9 +15,13 @@
  */
 package org.springframework.data.r2dbc.repository;
 
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.data.repository.reactive.ReactiveSortingRepository;
+import reactor.core.publisher.Mono;
 
 /**
  * R2DBC specific {@link org.springframework.data.repository.Repository} interface with reactive support.
@@ -27,4 +31,14 @@ import org.springframework.data.repository.reactive.ReactiveSortingRepository;
  * @author Greg Turnquist
  */
 @NoRepositoryBean
-public interface R2dbcRepository<T, ID> extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T> {}
+public interface R2dbcRepository<T, ID> extends ReactiveSortingRepository<T, ID>, ReactiveQueryByExampleExecutor<T> {
+
+	/**
+	 * Returns a {@link Page} of entities matching the given {@link Example}.
+	 *
+	 * @param example  must not be {@literal null}.
+	 * @param pageable can be {@literal null}.
+	 * @return a {@link Page} of entities matching the given {@link Example}.
+	 */
+	<S extends T> Mono<Page<S>> findAll(Example<S> example, Pageable pageable);
+}
