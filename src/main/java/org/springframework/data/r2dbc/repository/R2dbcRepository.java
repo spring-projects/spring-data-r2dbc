@@ -37,7 +37,7 @@ public interface R2dbcRepository<T, ID> extends ReactiveSortingRepository<T, ID>
 	 * Returns a {@link Page} of entities matching the given {@link Example}.
 	 *
 	 * @param example  must not be {@literal null}.
-	 * @param pageable can be {@literal null}.
+	 * @param pageable must not be {@literal null}.
 	 * @return a {@link Page} of entities matching the given {@link Example}.
 	 */
 	<S extends T> Mono<Page<S>> findAll(Example<S> example, Pageable pageable);
