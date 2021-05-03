@@ -97,7 +97,7 @@ public class MySqlTestSupport {
 				.database("mysql") //
 				.username("root") //
 				.password("my-secret-pw") //
-				.jdbcUrl("jdbc:mysql://localhost:3306/mysql") //
+				.jdbcUrl("jdbc:mysql://localhost:3306/mysql?allowPublicKeyRetrieval=true") //
 				.build();
 	}
 
@@ -109,7 +109,7 @@ public class MySqlTestSupport {
 		if (testContainerDatabase == null) {
 
 			try {
-				MySQLContainer container = new MySQLContainer(MySQLContainer.IMAGE + ":" + MySQLContainer.DEFAULT_TAG);
+				MySQLContainer container = new MySQLContainer("mysql:8.0.24");
 				container.start();
 
 				testContainerDatabase = ProvidedDatabase.builder(container) //
@@ -142,7 +142,7 @@ public class MySqlTestSupport {
 
 		dataSource.setUser(database.getUsername());
 		dataSource.setPassword(database.getPassword());
-		dataSource.setURL(database.getJdbcUrl() + "?useSSL=false");
+		dataSource.setURL(database.getJdbcUrl() + "?useSSL=false&allowPublicKeyRetrieval=true");
 
 		return dataSource;
 	}
