@@ -28,7 +28,6 @@ import org.springframework.data.r2dbc.testing.ExternalDatabase.ProvidedDatabase;
 
 import org.testcontainers.containers.MySQLContainer;
 
-import com.github.jasync.r2dbc.mysql.MysqlConnectionFactoryProvider;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
 /**
@@ -123,15 +122,6 @@ public class MySqlTestSupport {
 		}
 
 		return testContainerDatabase;
-	}
-
-	/**
-	 * Creates a new Jasync MySQL {@link ConnectionFactory} configured from the {@link ExternalDatabase}.
-	 */
-	public static ConnectionFactory createJasyncConnectionFactory(ExternalDatabase database) {
-
-		ConnectionFactoryOptions options = ConnectionUtils.createOptions("mysql", database);
-		return new MysqlConnectionFactoryProvider().create(options);
 	}
 
 	/**
