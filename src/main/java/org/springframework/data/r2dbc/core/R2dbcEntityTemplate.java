@@ -88,6 +88,7 @@ import org.springframework.util.Assert;
  *
  * @author Mark Paluch
  * @author Bogdan Ilchyshyn
+ * @author Jens Schauder
  * @since 1.1
  */
 public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAware, ApplicationContextAware {
@@ -604,7 +605,7 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 						return statement.returnGeneratedValues();
 					}
 
-					return statement.returnGeneratedValues(dataAccessStrategy.toSql(identifierColumns.get(0)));
+					return statement.returnGeneratedValues(dataAccessStrategy.renderForGeneratedKeys(identifierColumns.get(0)));
 				})
 				.map(this.dataAccessStrategy.getConverter().populateIdIfNecessary(entity)) //
 				.all() //
