@@ -18,7 +18,7 @@
 	</parent>
 
 	<properties>
-
+		<kotlin-coroutines>1.5.0</kotlin-coroutines>
 		<dist.key>DATAR2DBC</dist.key>
 
 		<springdata.commons>2.6.0-SNAPSHOT</springdata.commons>
