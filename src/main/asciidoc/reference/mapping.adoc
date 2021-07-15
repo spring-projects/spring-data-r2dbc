@@ -44,14 +44,14 @@ By creating your own instance, you can register Spring converters to map specifi
 
 You can configure the `MappingR2dbcConverter` as well as `DatabaseClient` and `ConnectionFactory` by using  Java-based metadata. The following example uses Spring's Java-based configuration:
 
-If you set `setForceQuote` of the `R2dbcMappingContext to `true, table and column names derived from classes and properties are used with database specific quotes.
-This means it is ok to use reserved SQL words like for example `order` in these names.
-This can be done by overriding `r2dbcMappingContext(Optional<NamingStrategy>)` of `AbstractR2dbcConfiguration`.
+If you set `setForceQuote` of the `R2dbcMappingContext to` true, table and column names derived from classes and properties are used with database specific quotes.
+This means that it is OK to use reserved SQL words (such as order) in these names.
+You can do so by overriding `r2dbcMappingContext(Optional<NamingStrategy>)` of `AbstractR2dbcConfiguration`.
 Spring Data converts the letter casing of such a name to that form which is also used by the configured database when no quoting is used.
-Therefore, you can use unquoted names when creating tables, as long as you don't use keywords or special characters in your names.
-For databases adhering to the SQL standard with that respect this means, names will be converted to upper case.
-The quoting character used, and the way names get capitalized is controlled by the used `Dialect`.
-See <<r2dbc.drivers>> for details how to configure custom dialects.
+Therefore, you can use unquoted names when creating tables, as long as you do not use keywords or special characters in your names.
+For databases that adhere to the SQL standard, this means that names are converted to upper case.
+The quoting character and the way names get capitalized is controlled by the used `Dialect`.
+See <<r2dbc.drivers>> for how to configure custom dialects.
 
 .@Configuration class to configure R2DBC mapping support
 ====
@@ -82,7 +82,7 @@ public class MyAppConfig extends AbstractR2dbcConfiguration {
 
 You can add additional converters to the converter by overriding the `r2dbcCustomConversions` method.
 
-You may configure a custom `NamingStrategy` by registering it as a bean.
+You can configure a custom `NamingStrategy` by registering it as a bean.
 The `NamingStrategy` controls how the names of classes and properties get converted to the names of tables and columns.
 
 NOTE: `AbstractR2dbcConfiguration` creates a `DatabaseClient` instance and registers it with the container under the name of `databaseClient`.
