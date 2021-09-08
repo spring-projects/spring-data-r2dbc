@@ -239,7 +239,7 @@ public class StringBasedR2dbcQueryUnitTests {
 		verifyNoMoreInteractions(bindSpec);
 	}
 
-	@Test // gh-321
+	@Test // gh-321, gh-644
 	void skipsNonBindableParameters() {
 
 		StringBasedR2dbcQuery query = getQueryMethod("queryWithUnusedParameter", String.class, Sort.class);
@@ -250,7 +250,7 @@ public class StringBasedR2dbcQueryUnitTests {
 		assertThat(stringQuery.get()).isEqualTo("SELECT * FROM person WHERE lastname = :name");
 		assertThat(stringQuery.bind(bindSpec)).isNotNull();
 
-		verify(bindSpec).bind(0, "Walter");
+		verify(bindSpec).bind("name", "Walter");
 		verifyNoMoreInteractions(bindSpec);
 	}
 
