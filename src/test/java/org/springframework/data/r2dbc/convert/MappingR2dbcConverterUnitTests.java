@@ -64,7 +64,8 @@ public class MappingR2dbcConverterUnitTests {
 
 		R2dbcCustomConversions conversions = new R2dbcCustomConversions(
 				Arrays.asList(StringToMapConverter.INSTANCE, MapToStringConverter.INSTANCE,
-						CustomConversionPersonToOutboundRowConverter.INSTANCE, RowToCustomConversionPerson.INSTANCE));
+						CustomConversionPersonToOutboundRowConverter.INSTANCE, RowToCustomConversionPerson.INSTANCE,
+						StringToSimplePersonConverter.INSTANCE));
 
 		mappingContext.setSimpleTypeHolder(conversions.getSimpleTypeHolder());
 
@@ -81,8 +82,7 @@ public class MappingR2dbcConverterUnitTests {
 		converter.write(new Person("id", "Walter", "White", instant, localDateTime), row);
 
 		assertThat(row).containsEntry(SqlIdentifier.unquoted("id"), Parameter.fromOrEmpty("id", String.class));
-		assertThat(row).containsEntry(SqlIdentifier.unquoted("firstname"),
-				Parameter.fromOrEmpty("Walter", String.class));
+		assertThat(row).containsEntry(SqlIdentifier.unquoted("firstname"), Parameter.fromOrEmpty("Walter", String.class));
 		assertThat(row).containsEntry(SqlIdentifier.unquoted("lastname"), Parameter.fromOrEmpty("White", String.class));
 		assertThat(row).containsEntry(SqlIdentifier.unquoted("instant"), Parameter.from(instant));
 		assertThat(row).containsEntry(SqlIdentifier.unquoted("local_date_time"), Parameter.from(localDateTime));
@@ -236,6 +236,19 @@ public class MappingR2dbcConverterUnitTests {
 		assertThat(result.world).isEqualTo("No, universe");
 	}
 
+	@Test // GH-670
+	void considersConverterBeforeEntityConstruction() {
+
+		MockRow row = MockRow.builder().identified("id", Object.class, 42).identified("person", Object.class, null).build();
+		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+				.columnMetadata(MockColumnMetadata.builder().name("person").build()).build();
+
+		WithSimplePersonConstructor result = converter.read(WithSimplePersonConstructor.class, row, metadata);
+
+		assertThat(result.id).isEqualTo(42);
+		assertThat(result.person).isNull();
+	}
+
 	@AllArgsConstructor
 	static class Person {
 		@Id String id;
@@ -349,6 +362,17 @@ public class MappingR2dbcConverterUnitTests {
 		}
 	}
 
+	@ReadingConverter
+	enum StringToSimplePersonConverter implements Converter<String, SimplePerson> {
+
+		INSTANCE;
+
+		@Override
+		public SimplePerson convert(String source) {
+			return new SimplePerson(source);
+		}
+	}
+
 	static class WithSpelExpression {
 
 		private final long id;
@@ -359,6 +383,26 @@ public class MappingR2dbcConverterUnitTests {
 			this.id = id;
 			this.hello = hello;
 			this.world = world;
+		}
+	}
+
+	static class WithSimplePersonConstructor {
+
+		private final long id;
+		private final SimplePerson person;
+
+		public WithSimplePersonConstructor(long id, SimplePerson person) {
+			this.id = id;
+			this.person = person;
+		}
+	}
+
+	static class SimplePerson {
+
+		private final String name;
+
+		SimplePerson(String name) {
+			this.name = name;
 		}
 	}
 }
