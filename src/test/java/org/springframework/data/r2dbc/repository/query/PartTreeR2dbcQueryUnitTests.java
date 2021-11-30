@@ -823,7 +823,7 @@ class PartTreeR2dbcQueryUnitTests {
 	@Table("users")
 	@Data
 	private static class User {
-		
+
 		private @Id Long id;
 		private String firstName;
 		private String lastName;
