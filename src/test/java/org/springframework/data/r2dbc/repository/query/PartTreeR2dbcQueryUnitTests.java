@@ -66,6 +66,7 @@ import org.springframework.r2dbc.core.binding.BindTarget;
  * @author Mark Paluch
  * @author Mingyuan Wu
  * @author Myeonghyeon Lee
+ * @author Philmon Roberts
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -683,61 +684,60 @@ class PartTreeR2dbcQueryUnitTests {
 	}
 
 	private RelationalParametersParameterAccessor getAccessor(R2dbcQueryMethod queryMethod, Object[] values) {
-	    	return new RelationalParametersParameterAccessor(queryMethod, values);
+		return new RelationalParametersParameterAccessor(queryMethod, values);
 	}
 
 	private static String formatOperation(PreparedOperation<?> preparedOperation){
-         	return formatQuery(preparedOperation.get());
+		return formatQuery(preparedOperation.get());
 	}
 
 	private static String formatQuery(String query){
-                String firstKeyword = "SELECT";
-                String lastKeyword = "FROM";
-
-                int indexOfFirstKeyWord = query.toUpperCase().indexOf(firstKeyword);
-                int indexOfLastKeyWord = query.toUpperCase().indexOf(lastKeyword);
-
-                if(indexOfFirstKeyWord!=0 || indexOfFirstKeyWord>=indexOfLastKeyWord){
-                        return query;
-                }
-
-                String fields = query.substring(firstKeyword.length(), indexOfLastKeyWord);
-                String sortedFields = sortFields(fields);
-
-                StringBuilder formattedQuery = new StringBuilder();
-                formattedQuery.append(firstKeyword);
-                formattedQuery.append(" ");
-                formattedQuery.append(sortedFields);
-                formattedQuery.append(" ");
-                formattedQuery.append(query.substring(indexOfLastKeyWord, query.length()));
-
-                return formattedQuery.toString();
+		String firstKeyword = "SELECT";
+		String lastKeyword = "FROM";
+		
+		int indexOfFirstKeyWord = query.toUpperCase().indexOf(firstKeyword);
+		int indexOfLastKeyWord = query.toUpperCase().indexOf(lastKeyword);
+		
+		if(indexOfFirstKeyWord!=0 || indexOfFirstKeyWord>=indexOfLastKeyWord){
+			return query;
+		}
+		
+		String fields = query.substring(firstKeyword.length(), indexOfLastKeyWord);
+		String sortedFields = sortFields(fields);
+		
+		StringBuilder formattedQuery = new StringBuilder();
+		formattedQuery.append(firstKeyword);
+		formattedQuery.append(" ");
+		formattedQuery.append(sortedFields);
+		formattedQuery.append(" ");
+		formattedQuery.append(query.substring(indexOfLastKeyWord, query.length()));
+		
+		return formattedQuery.toString();
         }
 
         private static String sortFields(String fields){
-                List<String> sortedFieldsList = new ArrayList<>();
-                StringBuilder fieldBuilder = new StringBuilder();
-                StringBuilder sortedFields = new StringBuilder();
-
-                for(int i=0;i<fields.length();i++){
-                        if(fields.charAt(i)==','){
-                                sortedFieldsList.add(fieldBuilder.toString().trim());
-                                fieldBuilder = new StringBuilder();
-                        }else{
-                                fieldBuilder.append(fields.charAt(i));
-                        }
-                }
-                sortedFieldsList.add(fieldBuilder.toString().trim());
-                Collections.sort(sortedFieldsList);
-
-                for(String sortedField: sortedFieldsList){
-                        if(sortedFieldsList.get(0)!=sortedField){
-                                sortedFields.append(", ");
-                        }
-                        sortedFields.append(sortedField);
-                }
-
-                return sortedFields.toString();
+		List<String> sortedFieldsList = new ArrayList<>();
+		StringBuilder fieldBuilder = new StringBuilder();
+		StringBuilder sortedFields = new StringBuilder();
+		
+		for(int i=0;i<fields.length();i++){
+			if(fields.charAt(i)==','){
+				sortedFieldsList.add(fieldBuilder.toString().trim());
+				fieldBuilder = new StringBuilder();
+			}else{
+				fieldBuilder.append(fields.charAt(i));
+			}
+		}
+		sortedFieldsList.add(fieldBuilder.toString().trim());
+		Collections.sort(sortedFieldsList);
+		
+		for(String sortedField: sortedFieldsList){
+			if(sortedFieldsList.get(0)!=sortedField){
+				sortedFields.append(", ");
+			}
+			sortedFields.append(sortedField);
+		}
+		return sortedFields.toString();
         }
 
 	@SuppressWarnings("ALL")
@@ -823,7 +823,7 @@ class PartTreeR2dbcQueryUnitTests {
 	@Table("users")
 	@Data
 	private static class User {
-	
+		
 		private @Id Long id;
 		private String firstName;
 		private String lastName;
