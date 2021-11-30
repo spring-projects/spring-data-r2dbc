@@ -27,6 +27,8 @@ import reactor.core.publisher.Mono;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +66,7 @@ import org.springframework.r2dbc.core.binding.BindTarget;
  * @author Mark Paluch
  * @author Mingyuan Wu
  * @author Myeonghyeon Lee
+ * @author Philmon Roberts
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -108,8 +111,8 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 		PreparedOperation<?> preparedOperation = createQuery(queryMethod, r2dbcQuery, "John");
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1"));
 	}
 
 	@Test // gh-282
@@ -120,8 +123,8 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 		PreparedOperation<?> preparedOperation = createQuery(queryMethod, r2dbcQuery, new Object[] { null });
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name IS NULL");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name IS NULL"));
 	}
 
 	@Test // gh-282
@@ -145,8 +148,8 @@ class PartTreeR2dbcQueryUnitTests {
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery,
 				getAccessor(queryMethod, new Object[] { "Doe", "John" }));
 
-		assertThat(preparedOperation.get()).isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
-				+ ".last_name = $1 AND (" + TABLE + ".first_name = $2)");
+		assertThat(formatOperation(preparedOperation)).isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
+				+ ".last_name = $1 AND (" + TABLE + ".first_name = $2)"));
 	}
 
 	@Test // gh-282
@@ -158,8 +161,8 @@ class PartTreeR2dbcQueryUnitTests {
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery,
 				getAccessor(queryMethod, new Object[] { "Doe", "John" }));
 
-		assertThat(preparedOperation.get()).isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
-				+ ".last_name = $1 OR (" + TABLE + ".first_name = $2)");
+		assertThat(formatOperation(preparedOperation)).isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE
+				+ ".last_name = $1 OR (" + TABLE + ".first_name = $2)"));
 	}
 
 	@Test // gh-282, gh-349
@@ -173,8 +176,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { from, to });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth BETWEEN $1 AND $2");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth BETWEEN $1 AND $2"));
 
 		BindTarget bindTarget = mock(BindTarget.class);
 		preparedOperation.bindTo(bindTarget);
@@ -192,8 +195,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age < $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age < $1"));
 	}
 
 	@Test // gh-282
@@ -205,8 +208,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age <= $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age <= $1"));
 	}
 
 	@Test // gh-282
@@ -218,8 +221,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age > $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age > $1"));
 	}
 
 	@Test // gh-282
@@ -231,8 +234,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { 30 });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age >= $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age >= $1"));
 	}
 
 	@Test // gh-282
@@ -244,8 +247,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { new Date() });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth > $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth > $1"));
 	}
 
 	@Test // gh-282
@@ -256,8 +259,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { new Date() });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth < $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".date_of_birth < $1"));
 	}
 
 	@Test // gh-282
@@ -269,8 +272,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NULL");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NULL"));
 	}
 
 	@Test // gh-282
@@ -282,8 +285,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NOT NULL");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IS NOT NULL"));
 	}
 
 	@Test // gh-282
@@ -295,8 +298,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "%John%" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -308,8 +311,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "%John%" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -321,8 +324,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "Jo" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -348,8 +351,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "hn" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -375,8 +378,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -402,8 +405,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name NOT LIKE $1"));
 	}
 
 	@Test // gh-282
@@ -429,9 +432,9 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
+		assertThat(formatOperation(preparedOperation))
 				.isEqualTo(
-						"SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name DESC");
+						formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name DESC"));
 	}
 
 	@Test // gh-282
@@ -442,9 +445,9 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "oh" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
+		assertThat(formatOperation(preparedOperation))
 				.isEqualTo(
-						"SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name ASC");
+						formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age = $1 ORDER BY users.last_name ASC"));
 	}
 
 	@Test // gh-282
@@ -455,8 +458,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "Doe" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".last_name != $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".last_name != $1"));
 	}
 
 	@Test // gh-282
@@ -469,8 +472,8 @@ class PartTreeR2dbcQueryUnitTests {
 				new Object[] { Collections.singleton(25) });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IN ($1)");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age IN ($1)"));
 	}
 
 	@Test // gh-282
@@ -482,8 +485,8 @@ class PartTreeR2dbcQueryUnitTests {
 				new Object[] { Collections.singleton(25) });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age NOT IN ($1)");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".age NOT IN ($1)"));
 	}
 
 	@Test // gh-282, gh-698
@@ -495,8 +498,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".active = $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".active = $1"));
 	}
 
 	@Test // gh-282, gh-698
@@ -508,8 +511,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[0]);
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".active = $1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".active = $1"));
 	}
 
 	@Test // gh-282
@@ -521,8 +524,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE UPPER(" + TABLE + ".first_name) = UPPER($1)");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE UPPER(" + TABLE + ".first_name) = UPPER($1)"));
 	}
 
 	@Test // gh-282
@@ -585,8 +588,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1 LIMIT 3");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1 LIMIT 3"));
 	}
 
 	@Test // gh-282
@@ -598,8 +601,8 @@ class PartTreeR2dbcQueryUnitTests {
 		RelationalParametersParameterAccessor accessor = getAccessor(queryMethod, new Object[] { "John" });
 		PreparedOperation<?> preparedOperation = createQuery(r2dbcQuery, accessor);
 
-		assertThat(preparedOperation.get())
-				.isEqualTo("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1 LIMIT 1");
+		assertThat(formatOperation(preparedOperation))
+				.isEqualTo(formatQuery("SELECT " + ALL_FIELDS + " FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1 LIMIT 1"));
 	}
 
 	@Test // gh-341
@@ -622,8 +625,8 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 		PreparedOperation<?> preparedOperation = createQuery(queryMethod, r2dbcQuery, "John");
 
-		assertThat(preparedOperation.get()).isEqualTo("SELECT " + DISTINCT + " " + TABLE + ".first_name, " + TABLE
-				+ ".foo FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1");
+		assertThat(formatOperation(preparedOperation)).isEqualTo(formatQuery("SELECT " + DISTINCT + " " + TABLE + ".first_name, " + TABLE
+				+ ".foo FROM " + TABLE + " WHERE " + TABLE + ".first_name = $1"));
 	}
 
 	@Test // gh-475
@@ -634,9 +637,9 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 		PreparedOperation<?> preparedOperation = createQuery(queryMethod, r2dbcQuery);
 
-		assertThat(preparedOperation.get()).isEqualTo(
-				"SELECT users.id, users.first_name, users.last_name, users.date_of_birth, users.age, users.active FROM "
-						+ TABLE);
+		assertThat(formatOperation(preparedOperation)).isEqualTo(
+				formatQuery("SELECT users.id, users.first_name, users.last_name, users.date_of_birth, users.age, users.active FROM "
+						+ TABLE));
 	}
 
 	@Test // gh-475
@@ -647,9 +650,9 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 		PreparedOperation<?> preparedOperation = createQuery(queryMethod, r2dbcQuery);
 
-		assertThat(preparedOperation.get()).isEqualTo(
-				"SELECT users.id, users.first_name, users.last_name, users.date_of_birth, users.age, users.active FROM "
-						+ TABLE);
+		assertThat(formatOperation(preparedOperation)).isEqualTo(
+				formatQuery("SELECT users.id, users.first_name, users.last_name, users.date_of_birth, users.age, users.active FROM "
+						+ TABLE));
 	}
 
 	@Test // gh-363
@@ -683,6 +686,59 @@ class PartTreeR2dbcQueryUnitTests {
 	private RelationalParametersParameterAccessor getAccessor(R2dbcQueryMethod queryMethod, Object[] values) {
 		return new RelationalParametersParameterAccessor(queryMethod, values);
 	}
+
+	private static String formatOperation(PreparedOperation<?> preparedOperation){
+		return formatQuery(preparedOperation.get());
+	}
+
+	private static String formatQuery(String query){
+		String firstKeyword = "SELECT";
+		String lastKeyword = "FROM";
+
+		int indexOfFirstKeyWord = query.toUpperCase().indexOf(firstKeyword);
+		int indexOfLastKeyWord = query.toUpperCase().indexOf(lastKeyword);
+
+		if(indexOfFirstKeyWord!=0 || indexOfFirstKeyWord>=indexOfLastKeyWord){
+			return query;
+		}
+
+		String fields = query.substring(firstKeyword.length(), indexOfLastKeyWord);
+		String sortedFields = sortFields(fields);
+
+		StringBuilder formattedQuery = new StringBuilder();
+		formattedQuery.append(firstKeyword);
+		formattedQuery.append(" ");
+		formattedQuery.append(sortedFields);
+		formattedQuery.append(" ");
+		formattedQuery.append(query.substring(indexOfLastKeyWord, query.length()));
+
+		return formattedQuery.toString();
+        }
+
+        private static String sortFields(String fields){
+		List<String> sortedFieldsList = new ArrayList<>();
+		StringBuilder fieldBuilder = new StringBuilder();
+		StringBuilder sortedFields = new StringBuilder();
+
+		for(int i=0;i<fields.length();i++){
+			if(fields.charAt(i)==','){
+				sortedFieldsList.add(fieldBuilder.toString().trim());
+				fieldBuilder = new StringBuilder();
+			}else{
+				fieldBuilder.append(fields.charAt(i));
+			}
+		}
+		sortedFieldsList.add(fieldBuilder.toString().trim());
+		Collections.sort(sortedFieldsList);
+
+		for(String sortedField: sortedFieldsList){
+			if(sortedFieldsList.get(0)!=sortedField){
+				sortedFields.append(", ");
+			}
+			sortedFields.append(sortedField);
+		}
+		return sortedFields.toString();
+        }
 
 	@SuppressWarnings("ALL")
 	interface UserRepository extends Repository<User, Long> {
