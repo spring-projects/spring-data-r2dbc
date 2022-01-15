@@ -100,5 +100,7 @@ public class SqlServerR2dbcRepositoryIntegrationTests extends AbstractR2dbcRepos
 		@Override
 		@Query("SELECT id FROM legoset")
 		Flux<Integer> findAllIds();
+
+		Flux<LegoSet> findLegoSetByFlag(boolean flag);
 	}
 }
