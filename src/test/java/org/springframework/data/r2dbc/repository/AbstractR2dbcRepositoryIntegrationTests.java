@@ -446,8 +446,8 @@ public abstract class AbstractR2dbcRepositoryIntegrationTests extends R2dbcInteg
 
 		@PersistenceConstructor
 		LegoSet(Integer id, String name, Integer manual, Boolean flag) {
-			this(id,name,manual);
-			this.flag=flag;
+			this(id, name, manual);
+			this.flag = flag;
 		}
 	}
 
