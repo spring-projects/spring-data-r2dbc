@@ -27,6 +27,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -145,6 +146,11 @@ public class MariaDbDatabaseClientIntegrationTests extends AbstractDatabaseClien
 				.consumeNextWith(actual -> assertThat(actual.getUuidValue()).isNull()) //
 				.verifyComplete();
 	}
+
+	@Override
+	@Test
+	@Disabled
+	public void insertTypedObjectWithBinary() {}
 
 	@Table("boolean_mapping")
 	@Data

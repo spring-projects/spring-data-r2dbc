@@ -23,6 +23,8 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 
+import org.springframework.core.io.Resource;
+
 /**
  * Integration tests for {@link DatabasePopulator} using H2.
  *
@@ -38,6 +40,10 @@ class H2DatabasePopulatorIntegrationTests extends AbstractDatabaseInitialization
 	@Override
 	ConnectionFactory getConnectionFactory() {
 		return this.connectionFactory;
+	}
+
+	Resource usersSchema() {
+		return resource("users-schema-h2.sql");
 	}
 
 	@Test
