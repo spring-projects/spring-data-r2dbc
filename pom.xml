@@ -351,7 +351,7 @@
 							https://docs.spring.io/spring-data/commons/docs/current/api/
 						</link>
 						<link>https://docs.oracle.com/javase/8/docs/api/</link>
-						<link>https://r2dbc.io/spec/0.8.0.RELEASE/api/</link>
+						<link>https://r2dbc.io/spec/0.9.0.RELEASE/api/</link>
 					</links>
 				</configuration>
 			</plugin>
@@ -461,7 +461,6 @@
 				<dependency>
 					<groupId>com.oracle.database.r2dbc</groupId>
 					<artifactId>oracle-r2dbc</artifactId>
-					<version>0.1.0</version>
 					<scope>test</scope>
 				</dependency>
 			</dependencies>
