@@ -32,6 +32,7 @@ import org.springframework.data.r2dbc.testing.OracleTestSupport;
  * @author Mark Paluch
  */
 @EnabledOnClass("oracle.r2dbc.impl.OracleConnectionFactoryProviderImpl")
+@Disabled("See https://github.com/oracle/oracle-r2dbc/issues/63")
 public class OracleDatabaseClientIntegrationTests extends AbstractDatabaseClientIntegrationTests {
 
 	@RegisterExtension public static final ExternalDatabase database = OracleTestSupport.database();

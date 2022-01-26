@@ -124,7 +124,7 @@ public class OracleTestSupport {
 		if (testContainerDatabase == null) {
 
 			try {
-				OracleContainer container = new OracleContainer("springci/spring-data-oracle-xe-prebuild:18.4.0")
+				OracleContainer container = new OracleContainer("gvenzl/oracle-xe:18.4.0")
 						.withReuse(true);
 				container.start();
 

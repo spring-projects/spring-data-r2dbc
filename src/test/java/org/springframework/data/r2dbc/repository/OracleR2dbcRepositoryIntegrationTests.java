@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import javax.sql.DataSource;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -45,6 +46,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @EnabledOnClass("oracle.r2dbc.impl.OracleConnectionFactoryProviderImpl")
+@Disabled("See https://github.com/oracle/oracle-r2dbc/issues/63")
 public class OracleR2dbcRepositoryIntegrationTests extends AbstractR2dbcRepositoryIntegrationTests {
 
 	@RegisterExtension public static final ExternalDatabase database = OracleTestSupport.database();
