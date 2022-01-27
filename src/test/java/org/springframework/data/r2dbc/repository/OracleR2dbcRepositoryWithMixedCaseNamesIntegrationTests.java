@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import javax.sql.DataSource;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -49,7 +48,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration
 @EnabledOnClass("oracle.r2dbc.impl.OracleConnectionFactoryProviderImpl")
-@Disabled("See https://github.com/oracle/oracle-r2dbc/issues/63")
 public class OracleR2dbcRepositoryWithMixedCaseNamesIntegrationTests
 		extends AbstractR2dbcRepositoryWithMixedCaseNamesIntegrationTests {
 

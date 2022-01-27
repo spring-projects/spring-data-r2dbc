@@ -19,7 +19,6 @@ import io.r2dbc.spi.ConnectionFactory;
 
 import javax.sql.DataSource;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import org.springframework.data.r2dbc.testing.EnabledOnClass;
@@ -32,7 +31,6 @@ import org.springframework.data.r2dbc.testing.OracleTestSupport;
  * @author Mark Paluch
  */
 @EnabledOnClass("oracle.r2dbc.impl.OracleConnectionFactoryProviderImpl")
-@Disabled("See https://github.com/oracle/oracle-r2dbc/issues/63")
 public class OracleDatabaseClientIntegrationTests extends AbstractDatabaseClientIntegrationTests {
 
 	@RegisterExtension public static final ExternalDatabase database = OracleTestSupport.database();
@@ -52,7 +50,4 @@ public class OracleDatabaseClientIntegrationTests extends AbstractDatabaseClient
 		return OracleTestSupport.CREATE_TABLE_LEGOSET;
 	}
 
-	@Override
-	@Disabled("https://github.com/oracle/oracle-r2dbc/issues/9")
-	public void executeSelectNamedParameters() {}
 }
