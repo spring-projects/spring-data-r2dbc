@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.springframework.data.relational.core.query.Criteria.*;
 import static org.springframework.data.relational.core.query.Query.*;
 
+import io.r2dbc.spi.R2dbcType;
 import io.r2dbc.spi.test.MockColumnMetadata;
 import io.r2dbc.spi.test.MockResult;
 import io.r2dbc.spi.test.MockRow;
@@ -56,10 +57,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectAll() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
-		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+		MockResult result = MockResult.builder()
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -79,10 +81,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectAs() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
-		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+		MockResult result = MockResult.builder()
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -102,10 +105,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectFromTable() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
 		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -125,10 +129,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectFirst() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
 		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -147,10 +152,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectOne() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
-		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+		MockResult result = MockResult.builder()
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -169,10 +175,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectExists() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
-		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified("id", Object.class, "Walter").build()).build();
+		MockResult result = MockResult.builder()
+				.row(MockRow.builder().identified("id", Object.class, "Walter").metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -191,10 +198,11 @@ public class ReactiveSelectOperationUnitTests {
 	@Test // gh-220
 	void shouldSelectCount() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder().columnMetadata(MockColumnMetadata.builder().name("id").build())
+		MockRowMetadata metadata = MockRowMetadata.builder()
+				.columnMetadata(MockColumnMetadata.builder().name("id").type(R2dbcType.INTEGER).build())
 				.build();
-		MockResult result = MockResult.builder().rowMetadata(metadata)
-				.row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
+		MockResult result = MockResult.builder()
+				.row(MockRow.builder().identified(0, Long.class, 1L).metadata(metadata).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 

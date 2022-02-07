@@ -21,6 +21,7 @@ import static org.springframework.data.r2dbc.query.Criteria.*;
 
 import io.r2dbc.spi.Connection;
 import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.R2dbcType;
 import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Statement;
 import io.r2dbc.spi.test.MockColumnMetadata;
@@ -435,9 +436,7 @@ public class DefaultDatabaseClientUnitTests {
 	@Test // gh-189
 	void shouldApplyStatementFilterFunctions() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder()
-				.columnMetadata(MockColumnMetadata.builder().name("name").build()).build();
-		MockResult result = MockResult.builder().rowMetadata(metadata).build();
+		MockResult result = MockResult.builder().build();
 
 		Statement statement = mockStatement(result);
 
@@ -460,9 +459,7 @@ public class DefaultDatabaseClientUnitTests {
 	@Test // gh-189
 	void shouldApplyStatementFilterFunctionsToTypedExecute() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder()
-				.columnMetadata(MockColumnMetadata.builder().name("name").build()).build();
-		MockResult result = MockResult.builder().rowMetadata(metadata).build();
+		MockResult result = MockResult.builder().build();
 
 		Statement statement = mockStatement(result);
 
@@ -538,11 +535,11 @@ public class DefaultDatabaseClientUnitTests {
 	private MockResult mockSingleColumnResult(@Nullable MockRow.Builder row) {
 
 		MockRowMetadata metadata = MockRowMetadata.builder()
-				.columnMetadata(MockColumnMetadata.builder().name("name").build()).build();
+				.columnMetadata(MockColumnMetadata.builder().name("name").type(R2dbcType.VARCHAR).build()).build();
 
-		MockResult.Builder resultBuilder = MockResult.builder().rowMetadata(metadata);
+		MockResult.Builder resultBuilder = MockResult.builder();
 		if (row != null) {
-			resultBuilder = resultBuilder.row(row.build());
+			resultBuilder = resultBuilder.row(row.metadata(metadata).build());
 		}
 		return resultBuilder.build();
 	}
