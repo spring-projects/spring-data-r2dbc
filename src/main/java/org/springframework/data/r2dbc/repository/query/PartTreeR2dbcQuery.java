@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright 2020-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.r2dbc.core.PreparedOperation;
  *
  * @author Roman Chigvintsev
  * @author Mark Paluch
+ * @author Diego Krupitza
  * @since 1.1
  */
 public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
@@ -119,7 +120,7 @@ public class PartTreeR2dbcQuery extends AbstractR2dbcQuery {
 
 			RelationalEntityMetadata<?> entityMetadata = getQueryMethod().getEntityInformation();
 			R2dbcQueryCreator queryCreator = new R2dbcQueryCreator(tree, dataAccessStrategy, entityMetadata, accessor,
-					projectedProperties);
+					projectedProperties, this.getQueryMethod().getLock());
 			return queryCreator.createQuery(getDynamicSort(accessor));
 		});
 	}

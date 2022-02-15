@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,7 @@
  */
 package org.springframework.data.r2dbc.core;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -34,6 +28,7 @@ import org.springframework.data.r2dbc.mapping.SettableValue;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.query.CriteriaDefinition;
 import org.springframework.data.relational.core.sql.Expression;
+import org.springframework.data.relational.core.sql.LockMode;
 import org.springframework.data.relational.core.sql.SqlIdentifier;
 import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.core.sql.render.RenderContext;
@@ -54,6 +49,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Roman Chigvintsev
  * @author Mingyuan Wu
+ * @author Diego Krupitza
  */
 public interface StatementMapper {
 
@@ -228,9 +224,10 @@ public interface StatementMapper {
 		private final long offset;
 		private final int limit;
 		private final boolean distinct;
+		private final LockMode lockMode;
 
 		protected SelectSpec(Table table, List<String> projectedFields, List<Expression> selectList,
-				@Nullable CriteriaDefinition criteria, Sort sort, int limit, long offset, boolean distinct) {
+				@Nullable CriteriaDefinition criteria, Sort sort, int limit, long offset, boolean distinct, LockMode lockMode) {
 			this.table = table;
 			this.projectedFields = projectedFields;
 			this.selectList = selectList;
@@ -239,6 +236,7 @@ public interface StatementMapper {
 			this.offset = offset;
 			this.limit = limit;
 			this.distinct = distinct;
+			this.lockMode = lockMode;
 		}
 
 		/**
@@ -263,7 +261,7 @@ public interface StatementMapper {
 			List<String> projectedFields = Collections.emptyList();
 			List<Expression> selectList = Collections.emptyList();
 			return new SelectSpec(Table.create(table), projectedFields, selectList, Criteria.empty(), Sort.unsorted(), -1, -1,
-					false);
+					false, null);
 		}
 
 		public SelectSpec doWithTable(BiFunction<Table, SelectSpec, SelectSpec> function) {
@@ -305,7 +303,7 @@ public interface StatementMapper {
 			selectList.addAll(Arrays.asList(expressions));
 
 			return new SelectSpec(this.table, projectedFields, selectList, this.criteria, this.sort, this.limit, this.offset,
-					this.distinct);
+					this.distinct, this.lockMode);
 		}
 
 		/**
@@ -321,7 +319,7 @@ public interface StatementMapper {
 			selectList.addAll(projectedFields);
 
 			return new SelectSpec(this.table, this.projectedFields, selectList, this.criteria, this.sort, this.limit,
-					this.offset, this.distinct);
+					this.offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -332,7 +330,7 @@ public interface StatementMapper {
 		 */
 		public SelectSpec withCriteria(CriteriaDefinition criteria) {
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, criteria, this.sort, this.limit,
-					this.offset, this.distinct);
+					this.offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -345,11 +343,11 @@ public interface StatementMapper {
 
 			if (sort.isSorted()) {
 				return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, sort, this.limit,
-						this.offset, this.distinct);
+						this.offset, this.distinct, this.lockMode);
 			}
 
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, this.limit,
-					this.offset, this.distinct);
+					this.offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -365,11 +363,11 @@ public interface StatementMapper {
 				Sort sort = page.getSort();
 
 				return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria,
-						sort.isSorted() ? sort : this.sort, page.getPageSize(), page.getOffset(), this.distinct);
+						sort.isSorted() ? sort : this.sort, page.getPageSize(), page.getOffset(), this.distinct, this.lockMode);
 			}
 
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, this.limit,
-					this.offset, this.distinct);
+					this.offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -380,7 +378,7 @@ public interface StatementMapper {
 		 */
 		public SelectSpec offset(long offset) {
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, this.limit,
-					offset, this.distinct);
+					offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -391,7 +389,7 @@ public interface StatementMapper {
 		 */
 		public SelectSpec limit(int limit) {
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, limit,
-					this.offset, this.distinct);
+					this.offset, this.distinct, this.lockMode);
 		}
 
 		/**
@@ -401,7 +399,28 @@ public interface StatementMapper {
 		 */
 		public SelectSpec distinct() {
 			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, limit,
-					this.offset, true);
+					this.offset, true, this.lockMode);
+		}
+
+		/**
+		 * Associate a lock mode with the select and create a new {@link SelectSpec}.
+		 *
+		 * @param lockMode the {@link LockMode} we want to use. This might be null
+		 * @return the {@link SelectSpec}.
+		 */
+		public SelectSpec lock(LockMode lockMode) {
+			return new SelectSpec(this.table, this.projectedFields, this.selectList, this.criteria, this.sort, limit,
+					this.offset, this.distinct, lockMode);
+		}
+
+		/**
+		 * The used lockmode
+		 * 
+		 * @return might be null if no lockmode defined.
+		 */
+		@Nullable
+		public LockMode getLock() {
+			return this.lockMode;
 		}
 
 		public Table getTable() {
@@ -441,6 +460,7 @@ public interface StatementMapper {
 		public boolean isDistinct() {
 			return this.distinct;
 		}
+
 	}
 
 	/**

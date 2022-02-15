@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,14 @@ import org.springframework.data.r2dbc.dialect.BindTarget;
 import org.springframework.data.r2dbc.dialect.PostgresDialect;
 import org.springframework.data.relational.core.query.Criteria;
 import org.springframework.data.relational.core.query.Update;
+import org.springframework.data.relational.core.sql.LockMode;
 import org.springframework.r2dbc.core.PreparedOperation;
 
 /**
  * Unit tests for {@link DefaultStatementMapper}.
  *
  * @author Mark Paluch
+ * @author Diego Krupitza
  */
 class StatementMapperUnitTests {
 
@@ -79,5 +81,27 @@ class StatementMapperUnitTests {
 
 		assertThat(preparedOperation.toQuery())
 				.isEqualTo("SELECT table.* FROM table ORDER BY table.id DESC LIMIT 2 OFFSET 2");
+	}
+
+	@Test // gh-1041
+	void shouldMapSelectWithSharedLock() {
+
+		StatementMapper.SelectSpec selectSpec = StatementMapper.SelectSpec.create("table").withProjection("*")
+				.lock(LockMode.PESSIMISTIC_READ);
+
+		PreparedOperation<?> preparedOperation = mapper.getMappedObject(selectSpec);
+
+		assertThat(preparedOperation.toQuery()).isEqualTo("SELECT table.* FROM table FOR SHARE OF table");
+	}
+
+	@Test // gh-1041
+	void shouldMapSelectWithWriteLock() {
+
+		StatementMapper.SelectSpec selectSpec = StatementMapper.SelectSpec.create("table").withProjection("*")
+				.lock(LockMode.PESSIMISTIC_WRITE);
+
+		PreparedOperation<?> preparedOperation = mapper.getMappedObject(selectSpec);
+
+		assertThat(preparedOperation.toQuery()).isEqualTo("SELECT table.* FROM table FOR UPDATE OF table");
 	}
 }

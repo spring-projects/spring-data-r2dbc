@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2021 the original author or authors.
+ * Copyright 2019-2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.springframework.util.Assert;
  * @author Mark Paluch
  * @author Roman Chigvintsev
  * @author Mingyuan Wu
+ * @author Diego Krupitza
  */
 class DefaultStatementMapper implements StatementMapper {
 
@@ -129,6 +130,10 @@ class DefaultStatementMapper implements StatementMapper {
 
 		if (selectSpec.getOffset() > 0) {
 			selectBuilder.offset(selectSpec.getOffset());
+		}
+
+		if (selectSpec.getLock() != null) {
+			selectBuilder.lock(selectSpec.getLock());
 		}
 
 		Select select = selectBuilder.build();
