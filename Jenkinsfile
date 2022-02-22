@@ -74,7 +74,7 @@ pipeline {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image(p['docker.java.next.image']).inside(p['docker.java.inside.docker']) {
 									sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-									sh 'PROFILE=ci,java11 ci/test.sh'
+									sh 'PROFILE=ci ci/test.sh'
 									sh "ci/clean.sh"
 								}
 							}
@@ -98,7 +98,7 @@ pipeline {
 							docker.withRegistry(p['docker.registry'], p['docker.credentials']) {
 								docker.image(p['docker.java.lts.image']).inside(p['docker.java.inside.docker']) {
 									sh "docker login --username ${DOCKER_HUB_USR} --password ${DOCKER_HUB_PSW}"
-									sh 'PROFILE=ci,java11 ci/test.sh'
+									sh 'PROFILE=ci ci/test.sh'
 									sh "ci/clean.sh"
 								}
 							}
