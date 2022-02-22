@@ -32,7 +32,7 @@ pipeline {
 
 			environment {
 				DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
@@ -64,7 +64,7 @@ pipeline {
 
 					environment {
 						DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 					}
 
 					steps {
@@ -88,7 +88,7 @@ pipeline {
 
 					environment {
 						DOCKER_HUB = credentials('hub.docker.com-springbuildmaster')
-						ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+						ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 					}
 
 					steps {
@@ -119,7 +119,7 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
@@ -150,7 +150,7 @@ pipeline {
 			options { timeout(time: 20, unit: 'MINUTES') }
 
 			environment {
-				ARTIFACTORY = credentials('02bd1690-b54f-4c9f-819d-a77cb7a9822c')
+				ARTIFACTORY = credentials("${p['artifactory.credentials']}")
 			}
 
 			steps {
