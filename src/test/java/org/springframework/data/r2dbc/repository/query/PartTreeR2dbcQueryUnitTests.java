@@ -106,7 +106,7 @@ class PartTreeR2dbcQueryUnitTests {
 				dataAccessStrategy);
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttribute() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstName", String.class);
@@ -119,7 +119,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryWithIsNullCondition() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstName", String.class);
@@ -132,7 +132,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name IS NULL");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryWithLimitForExistsProjection() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("existsByFirstName", String.class);
@@ -145,7 +145,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1 LIMIT 1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByTwoStringAttributes() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByLastNameAndFirstName", String.class, String.class);
@@ -159,7 +159,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".last_name = $1 AND (" + TABLE + ".first_name = $2)");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByOneOfTwoStringAttributes() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByLastNameOrFirstName", String.class, String.class);
@@ -173,7 +173,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".last_name = $1 OR (" + TABLE + ".first_name = $2)");
 	}
 
-	@Test // gh-282, gh-349
+	@Test // GH-282, GH-349
 	void createsQueryToFindAllEntitiesByDateAttributeBetween() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBetween", Date.class, Date.class);
@@ -195,7 +195,7 @@ class PartTreeR2dbcQueryUnitTests {
 		verify(bindTarget, times(1)).bind(1, to);
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeLessThan() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeLessThan", Integer.class);
@@ -209,7 +209,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age < $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeLessThanEqual() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeLessThanEqual", Integer.class);
@@ -223,7 +223,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age <= $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeGreaterThan() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeGreaterThan", Integer.class);
@@ -237,7 +237,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age > $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeGreaterThanEqual() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeGreaterThanEqual", Integer.class);
@@ -251,7 +251,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age >= $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByDateAttributeAfter() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthAfter", Date.class);
@@ -265,7 +265,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".date_of_birth > $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByDateAttributeBefore() throws Exception {
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByDateOfBirthBefore", Date.class);
 		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, operations, r2dbcConverter, dataAccessStrategy);
@@ -278,7 +278,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".date_of_birth < $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeIsNull() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeIsNull");
@@ -292,7 +292,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age IS NULL");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeIsNotNull() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeIsNotNull");
@@ -306,7 +306,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age IS NOT NULL");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeLike() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameLike", String.class);
@@ -320,7 +320,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeNotLike() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotLike", String.class);
@@ -334,7 +334,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name NOT LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeStartingWith() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameStartingWith", String.class);
@@ -348,7 +348,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void appendsLikeOperatorParameterWithPercentSymbolForStartingWithQuery() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameStartingWith", String.class);
@@ -361,7 +361,7 @@ class PartTreeR2dbcQueryUnitTests {
 		verify(bindTarget, times(1)).bind(0, "Jo%");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeEndingWith() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameEndingWith", String.class);
@@ -375,7 +375,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void prependsLikeOperatorParameterWithPercentSymbolForEndingWithQuery() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameEndingWith", String.class);
@@ -388,7 +388,7 @@ class PartTreeR2dbcQueryUnitTests {
 		verify(bindTarget, times(1)).bind(0, "%hn");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeContaining() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameContaining", String.class);
@@ -402,7 +402,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void wrapsLikeOperatorParameterWithPercentSymbolsForContainingQuery() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameContaining", String.class);
@@ -415,7 +415,7 @@ class PartTreeR2dbcQueryUnitTests {
 		verify(bindTarget, times(1)).bind(0, "%oh%");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeNotContaining() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotContaining", String.class);
@@ -429,7 +429,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name NOT LIKE $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void wrapsLikeOperatorParameterWithPercentSymbolsForNotContainingQuery() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameNotContaining", String.class);
@@ -442,7 +442,7 @@ class PartTreeR2dbcQueryUnitTests {
 		verify(bindTarget, times(1)).bind(0, "%oh%");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeWithDescendingOrderingByStringAttribute() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeOrderByLastNameDesc", Integer.class);
@@ -457,7 +457,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.orderBy("users.last_name DESC");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeWithAscendingOrderingByStringAttribute() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeOrderByLastNameAsc", Integer.class);
@@ -472,7 +472,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.orderBy("users.last_name ASC");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeNot() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByLastNameNot", String.class);
@@ -486,7 +486,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".last_name != $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeIn() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeIn", Collection.class);
@@ -501,7 +501,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age IN ($1)");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByIntegerAttributeNotIn() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByAgeNotIn", Collection.class);
@@ -516,7 +516,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".age NOT IN ($1)");
 	}
 
-	@Test // gh-282, gh-698
+	@Test // GH-282, GH-698
 	void createsQueryToFindAllEntitiesByBooleanAttributeTrue() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByActiveTrue");
@@ -530,7 +530,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".active = $1");
 	}
 
-	@Test // gh-282, gh-698
+	@Test // GH-282, GH-698
 	void createsQueryToFindAllEntitiesByBooleanAttributeFalse() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByActiveFalse");
@@ -544,7 +544,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".active = $1");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindAllEntitiesByStringAttributeIgnoringCase() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstNameIgnoreCase", String.class);
@@ -558,7 +558,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where("UPPER(" + TABLE + ".first_name) = UPPER($1)");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void throwsExceptionWhenIgnoringCaseIsImpossible() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findByIdIgnoringCase", Long.class);
@@ -568,7 +568,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.isThrownBy(() -> createQuery(r2dbcQuery, getAccessor(queryMethod, new Object[] { 1L })));
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void throwsExceptionWhenInPredicateHasNonIterableParameter() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByIdIn", Long.class);
@@ -577,7 +577,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.isThrownBy(() -> new PartTreeR2dbcQuery(queryMethod, operations, r2dbcConverter, dataAccessStrategy));
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void throwsExceptionWhenSimplePropertyPredicateHasIterableParameter() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllById", Collection.class);
@@ -586,7 +586,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.isThrownBy(() -> new PartTreeR2dbcQuery(queryMethod, operations, r2dbcConverter, dataAccessStrategy));
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void throwsExceptionWhenConditionKeywordIsUnsupported() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByIdIsEmpty");
@@ -596,7 +596,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.isThrownBy(() -> createQuery(r2dbcQuery, getAccessor(queryMethod, new Object[0])));
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void throwsExceptionWhenInvalidNumberOfParameterIsGiven() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAllByFirstName", String.class);
@@ -606,7 +606,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.isThrownBy(() -> createQuery(r2dbcQuery, getAccessor(queryMethod, new Object[0])));
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryWithLimitToFindEntitiesByStringAttribute() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findTop3ByFirstName", String.class);
@@ -620,7 +620,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1 LIMIT 3");
 	}
 
-	@Test // gh-282
+	@Test // GH-282
 	void createsQueryToFindFirstEntityByStringAttribute() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findFirstByFirstName", String.class);
@@ -634,7 +634,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1 LIMIT 1");
 	}
 
-	@Test // gh-341
+	@Test // GH-341
 	void createsQueryToDeleteByFirstName() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("deleteByFirstName", String.class);
@@ -648,7 +648,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1");
 	}
 
-	@Test // gh-344
+	@Test // GH-344
 	void createsQueryToFindAllEntitiesByStringAttributeWithDistinct() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findDistinctByFirstName", String.class);
@@ -661,7 +661,7 @@ class PartTreeR2dbcQueryUnitTests {
 
 	}
 
-	@Test // gh-475
+	@Test // GH-475
 	void createsQueryToFindByOpenProjection() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findOpenProjectionBy");
@@ -673,7 +673,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.from(TABLE);
 	}
 
-	@Test // gh-475
+	@Test // GH-475
 	void createsDtoProjectionQuery() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("findAsDtoProjectionBy");
@@ -685,7 +685,7 @@ class PartTreeR2dbcQueryUnitTests {
 				.from(TABLE);
 	}
 
-	@Test // gh-363
+	@Test // GH-363
 	void createsQueryForCountProjection() throws Exception {
 
 		R2dbcQueryMethod queryMethod = getQueryMethod("countByFirstName", String.class);
