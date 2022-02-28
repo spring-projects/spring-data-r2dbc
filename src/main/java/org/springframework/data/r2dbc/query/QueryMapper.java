@@ -368,7 +368,18 @@ public class QueryMapper {
 			typeHint = actualType.getType();
 		} else {
 
-			mappedValue = convertValue(criteria.getValue(), propertyField.getTypeHint());
+			Object value = criteria.getValue();
+
+			// Translate bind values for comparators that are bound as value but don't include a value.
+			if (value == null) {
+				if (criteria.getComparator() == Comparator.IS_TRUE) {
+					value = true;
+				} else if (criteria.getComparator() == Comparator.IS_FALSE) {
+					value = false;
+				}
+			}
+
+			mappedValue = convertValue(value, propertyField.getTypeHint());
 			typeHint = actualType.getType();
 		}
 
