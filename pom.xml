@@ -23,7 +23,6 @@
 
 		<springdata.commons>2.7.0-SNAPSHOT</springdata.commons>
 		<springdata.jdbc>2.4.0-SNAPSHOT</springdata.jdbc>
-		<springdata.relational>${springdata.jdbc}</springdata.relational>
 		<java-module-name>spring.data.r2dbc</java-module-name>
 		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
 
@@ -102,7 +101,7 @@
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>spring-data-relational</artifactId>
-			<version>${springdata.relational}</version>
+			<version>${springdata.jdbc}</version>
 		</dependency>
 
 		<dependency>
