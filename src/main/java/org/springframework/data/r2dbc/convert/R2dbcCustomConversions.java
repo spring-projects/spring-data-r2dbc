@@ -47,7 +47,7 @@ public class R2dbcCustomConversions extends CustomConversions {
 	 */
 	@Deprecated
 	public R2dbcCustomConversions(Collection<?> converters) {
-		super(new R2dbcCustomConversionsConfiguration(STORE_CONVERSIONS, appendOverrides(converters)));
+		super(new R2dbcCustomConversionsConfiguration(STORE_CONVERSIONS, new ArrayList<>(converters)));
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class R2dbcCustomConversions extends CustomConversions {
 	 * @param converters must not be {@literal null}.
 	 */
 	public R2dbcCustomConversions(StoreConversions storeConversions, Collection<?> converters) {
-		super(new R2dbcCustomConversionsConfiguration(storeConversions, appendOverrides(converters)));
+		super(new R2dbcCustomConversionsConfiguration(storeConversions, new ArrayList<>(converters)));
 	}
 
 	/**
@@ -86,14 +86,6 @@ public class R2dbcCustomConversions extends CustomConversions {
 		storeConverters.addAll(R2dbcCustomConversions.STORE_CONVERTERS);
 
 		return new R2dbcCustomConversions(StoreConversions.of(dialect.getSimpleTypeHolder(), storeConverters), converters);
-	}
-
-	private static List<?> appendOverrides(Collection<?> converters) {
-
-		List<Object> objects = new ArrayList<>(converters);
-		objects.addAll(R2dbcConverters.getOverrideConvertersToRegister());
-
-		return objects;
 	}
 
 	static class R2dbcCustomConversionsConfiguration extends ConverterConfiguration {

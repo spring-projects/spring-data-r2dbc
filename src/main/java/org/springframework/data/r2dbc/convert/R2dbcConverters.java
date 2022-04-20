@@ -77,7 +77,10 @@ abstract class R2dbcConverters {
 	 * @return A list of the registered converters to enforce JSR-310 type usage.
 	 * @see CustomConversions#DEFAULT_CONVERTERS
 	 * @see Jsr310Converters
+	 * @deprecated since 1.5, no longer required due to {@code ConverterConfiguration} converter filtering. Will be
+	 *             removed with the next major release.
 	 */
+	@Deprecated
 	public static Collection<Object> getOverrideConvertersToRegister() {
 
 		List<Object> converters = new ArrayList<>();
@@ -256,8 +259,11 @@ abstract class R2dbcConverters {
 		 * {@link Converter} override that forces {@link LocalDate} to stay on {@link LocalDate}.
 		 *
 		 * @author Mark Paluch
+		 * @deprecated since 1.5, no longer required due to {@code ConverterConfiguration} converter filtering. Will be
+		 *             removed with the next major release.
 		 */
 		@WritingConverter
+		@Deprecated
 		public enum LocalDateConverterOverride implements Converter<LocalDate, LocalDate> {
 
 			INSTANCE;
@@ -272,8 +278,11 @@ abstract class R2dbcConverters {
 		 * {@link Converter} override that forces {@link LocalDateTime} to stay on {@link LocalDateTime}.
 		 *
 		 * @author Mark Paluch
+		 * @deprecated since 1.5, no longer required due to {@code ConverterConfiguration} converter filtering. Will be
+		 *             removed with the next major release.
 		 */
 		@WritingConverter
+		@Deprecated
 		public enum LocalDateTimeConverterOverride implements Converter<LocalDateTime, LocalDateTime> {
 
 			INSTANCE;
@@ -288,8 +297,11 @@ abstract class R2dbcConverters {
 		 * {@link Converter} override that forces {@link LocalTime} to stay on {@link LocalTime}.
 		 *
 		 * @author Mark Paluch
+		 * @deprecated since 1.5, no longer required due to {@code ConverterConfiguration} converter filtering. Will be
+		 *             removed with the next major release.
 		 */
 		@WritingConverter
+		@Deprecated
 		public enum LocalTimeConverterOverride implements Converter<LocalTime, LocalTime> {
 
 			INSTANCE;
