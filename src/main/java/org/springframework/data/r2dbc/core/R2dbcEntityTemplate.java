@@ -91,6 +91,7 @@ import org.springframework.util.Assert;
  * @author Bogdan Ilchyshyn
  * @author Jens Schauder
  * @author Jose Luis Leon
+ * @author Robert Heim
  * @since 1.1
  */
 public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAware, ApplicationContextAware {
@@ -448,7 +449,8 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 	 */
 	@Override
 	public <T> Mono<T> selectOne(Query query, Class<T> entityClass) throws DataAccessException {
-		return doSelect(query.limit(2), entityClass, getTableName(entityClass), entityClass, RowsFetchSpec::one);
+		return doSelect(query.getLimit() != -1 ? query : query.limit(2), entityClass, getTableName(entityClass),
+				entityClass, RowsFetchSpec::one);
 	}
 
 	/*
@@ -641,11 +643,9 @@ public class R2dbcEntityTemplate implements R2dbcEntityOperations, BeanFactoryAw
 					}
 
 					return statement.returnGeneratedValues(dataAccessStrategy.renderForGeneratedValues(identifierColumns.get(0)));
-				})
-				.map(this.dataAccessStrategy.getConverter().populateIdIfNecessary(entity)) //
+				}).map(this.dataAccessStrategy.getConverter().populateIdIfNecessary(entity)) //
 				.all() //
-				.last(entity)
-				.flatMap(saved -> maybeCallAfterSave(saved, outboundRow, tableName));
+				.last(entity).flatMap(saved -> maybeCallAfterSave(saved, outboundRow, tableName));
 	}
 
 	@SuppressWarnings("unchecked")
