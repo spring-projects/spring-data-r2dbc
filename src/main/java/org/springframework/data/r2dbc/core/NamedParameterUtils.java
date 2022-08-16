@@ -27,6 +27,7 @@ import java.util.TreeMap;
 
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.r2dbc.dialect.BindTarget;
+import org.springframework.lang.Nullable;
 import org.springframework.r2dbc.core.binding.BindMarker;
 import org.springframework.r2dbc.core.binding.BindMarkers;
 import org.springframework.r2dbc.core.binding.BindMarkersFactory;
@@ -435,6 +436,7 @@ abstract class NamedParameterUtils {
 			return param;
 		}
 
+		@Nullable
 		List<NamedParameter> getMarker(String name) {
 			return this.references.get(name);
 		}
@@ -498,7 +500,7 @@ abstract class NamedParameterUtils {
 		@SuppressWarnings("unchecked")
 		public void bind(org.springframework.r2dbc.core.binding.BindTarget target, String identifier, Object value) {
 
-			List<BindMarker> bindMarkers = getBindMarkers(identifier);
+			List<List<BindMarker>> bindMarkers = getBindMarkers(identifier);
 
 			if (bindMarkers == null) {
 
@@ -506,28 +508,30 @@ abstract class NamedParameterUtils {
 				return;
 			}
 
-			if (value instanceof Collection) {
-				Collection<Object> collection = (Collection<Object>) value;
+			for (List<BindMarker> outer : bindMarkers) {
+				if (value instanceof Collection) {
+					Collection<Object> collection = (Collection<Object>) value;
 
-				Iterator<Object> iterator = collection.iterator();
-				Iterator<BindMarker> markers = bindMarkers.iterator();
+					Iterator<Object> iterator = collection.iterator();
+					Iterator<BindMarker> markers = outer.iterator();
 
-				while (iterator.hasNext()) {
+					while (iterator.hasNext()) {
 
-					Object valueToBind = iterator.next();
+						Object valueToBind = iterator.next();
 
-					if (valueToBind instanceof Object[]) {
-						Object[] objects = (Object[]) valueToBind;
-						for (Object object : objects) {
-							bind(target, markers, object);
+						if (valueToBind instanceof Object[]) {
+							Object[] objects = (Object[]) valueToBind;
+							for (Object object : objects) {
+								bind(target, markers, object);
+							}
+						} else {
+							bind(target, markers, valueToBind);
 						}
-					} else {
-						bind(target, markers, valueToBind);
 					}
-				}
-			} else {
-				for (BindMarker bindMarker : bindMarkers) {
-					bindMarker.bind(target, value);
+				} else {
+					for (BindMarker bindMarker : outer) {
+						bindMarker.bind(target, value);
+					}
 				}
 			}
 		}
@@ -546,7 +550,7 @@ abstract class NamedParameterUtils {
 		public void bindNull(org.springframework.r2dbc.core.binding.BindTarget target, String identifier,
 				Class<?> valueType) {
 
-			List<BindMarker> bindMarkers = getBindMarkers(identifier);
+			List<List<BindMarker>> bindMarkers = getBindMarkers(identifier);
 
 			if (bindMarkers == null) {
 
@@ -554,12 +558,15 @@ abstract class NamedParameterUtils {
 				return;
 			}
 
-			for (BindMarker bindMarker : bindMarkers) {
-				bindMarker.bindNull(target, valueType);
+			for (List<BindMarker> outer : bindMarkers) {
+				for (BindMarker bindMarker : outer) {
+					bindMarker.bindNull(target, valueType);
+				}
 			}
 		}
 
-		List<BindMarker> getBindMarkers(String identifier) {
+		@Nullable
+		List<List<BindMarker>> getBindMarkers(String identifier) {
 
 			List<NamedParameters.NamedParameter> parameters = this.parameters.getMarker(identifier);
 
@@ -567,10 +574,9 @@ abstract class NamedParameterUtils {
 				return null;
 			}
 
-			List<BindMarker> markers = new ArrayList<>();
-
+			List<List<BindMarker>> markers = new ArrayList<>();
 			for (NamedParameters.NamedParameter parameter : parameters) {
-				markers.addAll(parameter.placeholders);
+				markers.add(new ArrayList<>(parameter.placeholders));
 			}
 
 			return markers;

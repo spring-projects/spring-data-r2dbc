@@ -18,10 +18,12 @@ package org.springframework.data.r2dbc.core;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -456,6 +458,87 @@ class NamedParameterUtilsUnitTests {
 				assertThat(type).isEqualTo(String.class);
 			}
 		});
+	}
+
+	@Test // GH-1306
+	void inCollectionSameParameterNameShouldBindAllAnonymousParameters() {
+
+		ParsedSql parsedSql = NamedParameterUtils.parseSqlStatement("select :names AND :names");
+		org.springframework.r2dbc.core.PreparedOperation<String> operation = NamedParameterUtils
+				.substituteNamedParameters(parsedSql, BindMarkersFactory.anonymous("?"), new MapBindParameterSource(
+						Collections.singletonMap("names", SettableValue.from(Arrays.asList("1", "2", "3")))));
+
+		List<String> bindings = new ArrayList<>();
+
+		operation.bindTo(new BindingCaptor(bindings));
+
+		assertThat(operation.get()).isEqualTo("select ?, ?, ? AND ?, ?, ?");
+		assertThat(bindings).contains("0: 1", "1: 2", "2: 3", "3: 1", "4: 2", "5: 3");
+	}
+
+	@Test // GH-1306
+	void complexInCollectionSameParameterNameShouldBindAllAnonymousParameters() {
+
+		Map<String, SettableValue> parameterMap = new HashMap<>();
+		parameterMap.put("names", SettableValue.from(Arrays.asList("1", "2", "3")));
+		parameterMap.put("hello", SettableValue.from("world"));
+
+		ParsedSql parsedSql = NamedParameterUtils.parseSqlStatement("select :names AND :hello OR :names");
+		org.springframework.r2dbc.core.PreparedOperation<String> operation = NamedParameterUtils.substituteNamedParameters(
+				parsedSql, BindMarkersFactory.anonymous("?"), new MapBindParameterSource(parameterMap));
+
+		List<String> bindings = new ArrayList<>();
+
+		operation.bindTo(new BindingCaptor(bindings));
+
+		assertThat(operation.get()).isEqualTo("select ?, ?, ? AND ? OR ?, ?, ?");
+		assertThat(bindings).contains("0: 1", "1: 2", "2: 3", "3: world", "4: 1", "5: 2", "6: 3");
+	}
+
+	@Test // GH-1306
+	void inCollectionSameParameterNameShouldBindAllNamedParameters() {
+
+		ParsedSql parsedSql = NamedParameterUtils.parseSqlStatement("select :names AND :names");
+		org.springframework.r2dbc.core.PreparedOperation<String> operation = NamedParameterUtils
+				.substituteNamedParameters(parsedSql, BindMarkersFactory.indexed("$", 1), new MapBindParameterSource(
+						Collections.singletonMap("names", SettableValue.from(Arrays.asList("1", "2", "3")))));
+
+		List<String> bindings = new ArrayList<>();
+
+		operation.bindTo(new BindingCaptor(bindings));
+
+		assertThat(operation.get()).isEqualTo("select $1, $2, $3 AND $1, $2, $3");
+		assertThat(bindings).containsOnly("0: 1", "1: 2", "2: 3");
+	}
+
+	static class BindingCaptor implements org.springframework.r2dbc.core.binding.BindTarget {
+
+		private final List<String> bindings;
+
+		BindingCaptor(List<String> bindings) {
+			this.bindings = bindings;
+		}
+
+		@Override
+		public void bind(String identifier, Object value) {
+			bindings.add(identifier + ": " + value);
+		}
+
+		@Override
+		public void bind(int index, Object value) {
+			bindings.add(index + ": " + value);
+		}
+
+		@Override
+		public void bindNull(String identifier, Class<?> type) {
+
+		}
+
+		@Override
+		public void bindNull(int index, Class<?> type) {
+
+		}
+
 	}
 
 	private String expand(ParsedSql sql) {
