@@ -154,26 +154,22 @@ class R2dbcQueryCreator extends RelationalQueryCreator<PreparedOperation<?>> {
 			for (String projectedProperty : projectedProperties) {
 
 				RelationalPersistentProperty property = entity.getPersistentProperty(projectedProperty);
-				Column column = table.column(property != null ? property.getColumnName() : SqlIdentifier.unquoted(projectedProperty));
+				Column column = table
+						.column(property != null ? property.getColumnName() : SqlIdentifier.unquoted(projectedProperty));
 				expressions.add(column);
 			}
 
-		} else if (tree.isExistsProjection()) {
-
-			expressions = dataAccessStrategy.getIdentifierColumns(entityToRead).stream()
-				.map(table::column)
-				.collect(Collectors.toList());
-		} else if (tree.isCountProjection()) {
+		} else if (tree.isExistsProjection() || tree.isCountProjection()) {
 
 			Expression countExpression = entityMetadata.getTableEntity().hasIdProperty()
 					? table.column(entityMetadata.getTableEntity().getRequiredIdProperty().getColumnName())
-					: Expressions.asterisk();
+					: Expressions.just("1");
 
-			expressions = Collections.singletonList(Functions.count(countExpression));
+			expressions = Collections
+					.singletonList(tree.isCountProjection() ? Functions.count(countExpression) : countExpression);
 		} else {
-			expressions = dataAccessStrategy.getAllColumns(entityToRead).stream()
-				.map(table::column)
-				.collect(Collectors.toList());
+			expressions = dataAccessStrategy.getAllColumns(entityToRead).stream().map(table::column)
+					.collect(Collectors.toList());
 		}
 
 		return expressions.toArray(new Expression[0]);

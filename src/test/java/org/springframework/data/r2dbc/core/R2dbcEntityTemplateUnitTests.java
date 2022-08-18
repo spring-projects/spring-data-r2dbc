@@ -90,8 +90,7 @@ public class R2dbcEntityTemplateUnitTests {
 
 		MockRowMetadata metadata = MockRowMetadata.builder()
 				.columnMetadata(MockColumnMetadata.builder().name("name").type(R2dbcType.VARCHAR).build()).build();
-		MockResult result = MockResult.builder()
-				.row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
+		MockResult result = MockResult.builder().row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -109,10 +108,7 @@ public class R2dbcEntityTemplateUnitTests {
 	@Test // gh-469
 	void shouldProjectExistsResult() {
 
-		MockRowMetadata metadata = MockRowMetadata.builder()
-				.columnMetadata(MockColumnMetadata.builder().name("name").type(R2dbcType.VARCHAR).build()).build();
-		MockResult result = MockResult.builder()
-				.row(MockRow.builder().identified(0, Object.class, null).build()).build();
+		MockResult result = MockResult.builder().row(MockRow.builder().identified(0, Object.class, null).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -124,13 +120,36 @@ public class R2dbcEntityTemplateUnitTests {
 				.verifyComplete();
 	}
 
+	@Test // gh-773
+	void shouldProjectExistsResultWithoutId() {
+
+		MockResult result = MockResult.builder().row(MockRow.builder().identified(0, Object.class, null).build()).build();
+
+		recorder.addStubbing(s -> s.startsWith("SELECT 1"), result);
+
+		entityTemplate.select(WithoutId.class).exists() //
+				.as(StepVerifier::create) //
+				.expectNext(true).verifyComplete();
+	}
+
+	@Test // gh-773
+	void shouldProjectCountResultWithoutId() {
+
+		MockResult result = MockResult.builder().row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
+
+		recorder.addStubbing(s -> s.startsWith("SELECT COUNT(1)"), result);
+
+		entityTemplate.select(WithoutId.class).count() //
+				.as(StepVerifier::create) //
+				.expectNext(1L).verifyComplete();
+	}
+
 	@Test // gh-469
 	void shouldExistsByCriteria() {
 
 		MockRowMetadata metadata = MockRowMetadata.builder()
 				.columnMetadata(MockColumnMetadata.builder().name("name").type(R2dbcType.VARCHAR).build()).build();
-		MockResult result = MockResult.builder()
-				.row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
+		MockResult result = MockResult.builder().row(MockRow.builder().identified(0, Long.class, 1L).build()).build();
 
 		recorder.addStubbing(s -> s.startsWith("SELECT"), result);
 
@@ -478,6 +497,12 @@ public class R2dbcEntityTemplateUnitTests {
 		assertThat(statement.getSql()).isEqualTo("UPDATE person SET THE_NAME = $1, description = $2 WHERE person.id = $3");
 		assertThat(statement.getBindings()).hasSize(3).containsEntry(0, Parameter.from("before-convert")).containsEntry(1,
 				Parameter.from("before-save"));
+	}
+
+	@Value
+	static class WithoutId {
+
+		String name;
 	}
 
 	@Value

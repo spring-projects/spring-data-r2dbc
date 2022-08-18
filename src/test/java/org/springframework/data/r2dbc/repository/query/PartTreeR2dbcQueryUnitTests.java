@@ -77,8 +77,6 @@ class PartTreeR2dbcQueryUnitTests {
 			".age", ".active" };
 	private static final String[] ALL_FIELDS_ARRAY_PREFIXED = Arrays.stream(ALL_FIELDS_ARRAY).map(f -> TABLE + f)
 			.toArray(String[]::new);
-	private static final String ALL_FIELDS = String.join(", ", ALL_FIELDS_ARRAY_PREFIXED);
-	private static final String DISTINCT = "DISTINCT";
 
 	@Mock ConnectionFactory connectionFactory;
 	@Mock R2dbcConverter r2dbcConverter;
@@ -698,6 +696,32 @@ class PartTreeR2dbcQueryUnitTests {
 				.where(TABLE + ".first_name = $1");
 	}
 
+	@Test // GH-773
+	void createsQueryWithoutIdForCountProjection() throws Exception {
+
+		R2dbcQueryMethod queryMethod = getQueryMethod(WithoutIdRepository.class, "countByFirstName", String.class);
+		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, operations, r2dbcConverter, dataAccessStrategy);
+		PreparedOperation<?> query = createQuery(queryMethod, r2dbcQuery, "John");
+
+		PreparedOperationAssert.assertThat(query) //
+				.selects("COUNT(1)") //
+				.from(TABLE) //
+				.where(TABLE + ".first_name = $1");
+	}
+
+	@Test // GH-773
+	void createsQueryWithoutIdForExistsProjection() throws Exception {
+
+		R2dbcQueryMethod queryMethod = getQueryMethod(WithoutIdRepository.class, "existsByFirstName", String.class);
+		PartTreeR2dbcQuery r2dbcQuery = new PartTreeR2dbcQuery(queryMethod, operations, r2dbcConverter, dataAccessStrategy);
+		PreparedOperation<?> query = createQuery(queryMethod, r2dbcQuery, "John");
+
+		PreparedOperationAssert.assertThat(query) //
+				.selects("1") //
+				.from(TABLE) //
+				.where(TABLE + ".first_name = $1 LIMIT 1");
+	}
+
 	private PreparedOperation<?> createQuery(R2dbcQueryMethod queryMethod, PartTreeR2dbcQuery r2dbcQuery,
 			Object... parameters) {
 		return createQuery(r2dbcQuery, getAccessor(queryMethod, parameters));
@@ -709,8 +733,13 @@ class PartTreeR2dbcQueryUnitTests {
 	}
 
 	private R2dbcQueryMethod getQueryMethod(String methodName, Class<?>... parameterTypes) throws Exception {
-		Method method = UserRepository.class.getMethod(methodName, parameterTypes);
-		return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(UserRepository.class),
+		return getQueryMethod(UserRepository.class, methodName, parameterTypes);
+	}
+
+	private R2dbcQueryMethod getQueryMethod(Class<?> repository, String methodName, Class<?>... parameterTypes)
+			throws Exception {
+		Method method = repository.getMethod(methodName, parameterTypes);
+		return new R2dbcQueryMethod(method, new DefaultRepositoryMetadata(repository),
 				new SpelAwareProxyProjectionFactory(), mappingContext);
 	}
 
@@ -887,6 +916,13 @@ class PartTreeR2dbcQueryUnitTests {
 		Mono<Long> countByFirstName(String firstName);
 	}
 
+	interface WithoutIdRepository extends Repository<WithoutId, Long> {
+
+		Mono<Boolean> existsByFirstName(String firstName);
+
+		Mono<Long> countByFirstName(String firstName);
+	}
+
 	@Table("users")
 	@Data
 	private static class User {
@@ -897,6 +933,13 @@ class PartTreeR2dbcQueryUnitTests {
 		private Date dateOfBirth;
 		private Integer age;
 		private Boolean active;
+	}
+
+	@Table("users")
+	@Data
+	private static class WithoutId {
+
+		private String firstName;
 	}
 
 	interface UserProjection {
