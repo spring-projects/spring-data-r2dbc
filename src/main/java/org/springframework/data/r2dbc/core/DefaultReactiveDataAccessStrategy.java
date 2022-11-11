@@ -240,7 +240,6 @@ public class DefaultReactiveDataAccessStrategy implements ReactiveDataAccessStra
 		ArrayColumns arrayColumns = this.dialect.getArraySupport();
 
 		if (!arrayColumns.isSupported()) {
-
 			throw new InvalidDataAccessResourceUsageException(
 					"Dialect " + this.dialect.getClass().getName() + " does not support array columns");
 		}
@@ -266,8 +265,7 @@ public class DefaultReactiveDataAccessStrategy implements ReactiveDataAccessStra
 			return Parameter.empty(targetArrayType);
 		}
 
-		return Parameter.fromOrEmpty(this.converter.getArrayValue(arrayColumns, property, value.getValue()),
-				actualType);
+		return Parameter.fromOrEmpty(this.converter.getArrayValue(arrayColumns, property, value.getValue()), actualType);
 	}
 
 	/*

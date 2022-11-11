@@ -190,7 +190,6 @@ public class MappingR2dbcConverter extends BasicRelationalConverter implements R
 		}
 	}
 
-
 	public Object readValue(@Nullable Object value, TypeInformation<?> type) {
 
 		if (null == value) {
@@ -552,6 +551,8 @@ public class MappingR2dbcConverter extends BasicRelationalConverter implements R
 		if (actualType == null) {
 			actualType = property.getActualType();
 		}
+
+		actualType = getTargetType(actualType);
 
 		Class<?> targetType = arrayColumns.getArrayType(actualType);
 
