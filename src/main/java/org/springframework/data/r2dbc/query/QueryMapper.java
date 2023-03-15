@@ -348,24 +348,25 @@ public class QueryMapper {
 		Object mappedValue;
 		Class<?> typeHint;
 
+		Comparator comparator = criteria.getComparator();
 		if (criteria.getValue() instanceof SettableValue) {
 
 			SettableValue settableValue = (SettableValue) criteria.getValue();
 
-			mappedValue = convertValue(settableValue.getValue(), propertyField.getTypeHint());
+			mappedValue = convertValue(comparator, settableValue.getValue(), propertyField.getTypeHint());
 			typeHint = getTypeHint(mappedValue, actualType.getType(), settableValue);
 		} else if (criteria.getValue() instanceof Parameter) {
 
 			Parameter parameter = (Parameter) criteria.getValue();
 
-			mappedValue = convertValue(parameter.getValue(), propertyField.getTypeHint());
+			mappedValue = convertValue(comparator, parameter.getValue(), propertyField.getTypeHint());
 			typeHint = getTypeHint(mappedValue, actualType.getType(), parameter);
 		} else if (criteria.getValue() instanceof ValueFunction) {
 
 			ValueFunction<Object> valueFunction = (ValueFunction<Object>) criteria.getValue();
-			Object value = valueFunction.apply(getEscaper(criteria.getComparator()));
+			Object value = valueFunction.apply(getEscaper(comparator));
 
-			mappedValue = convertValue(value, propertyField.getTypeHint());
+			mappedValue = convertValue(comparator, value, propertyField.getTypeHint());
 			typeHint = actualType.getType();
 		} else {
 
@@ -373,18 +374,18 @@ public class QueryMapper {
 
 			// Translate bind values for comparators that are bound as value but don't include a value.
 			if (value == null) {
-				if (criteria.getComparator() == Comparator.IS_TRUE) {
+				if (comparator == Comparator.IS_TRUE) {
 					value = true;
-				} else if (criteria.getComparator() == Comparator.IS_FALSE) {
+				} else if (comparator == Comparator.IS_FALSE) {
 					value = false;
 				}
 			}
 
-			mappedValue = convertValue(value, propertyField.getTypeHint());
+			mappedValue = convertValue(comparator, value, propertyField.getTypeHint());
 			typeHint = actualType.getType();
 		}
 
-		return createCondition(column, mappedValue, typeHint, bindings, criteria.getComparator(), criteria.isIgnoreCase());
+		return createCondition(column, mappedValue, typeHint, bindings, comparator, criteria.isIgnoreCase());
 	}
 
 	private Escaper getEscaper(Comparator comparator) {
@@ -428,6 +429,24 @@ public class QueryMapper {
 	}
 
 	@Nullable
+	private Object convertValue(@Nullable Comparator comparator, @Nullable Object value, TypeInformation<?> typeHint) {
+
+		if (Comparator.IN.equals(comparator) && value instanceof Collection<?> && !((Collection<?>) value).isEmpty()) {
+
+			Collection<?> collection = (Collection<?>) value;
+			Collection<Object> mapped = new ArrayList<>(collection.size());
+
+			for (Object o : collection) {
+				mapped.add(convertValue(o, typeHint));
+			}
+
+			return mapped;
+		}
+
+		return convertValue(value, typeHint);
+	}
+
+	@Nullable
 	protected Object convertValue(@Nullable Object value, TypeInformation<?> typeInformation) {
 
 		if (value == null) {
@@ -447,23 +466,6 @@ public class QueryMapper {
 							: ClassTypeInformation.OBJECT);
 
 			return Pair.of(first, second);
-		}
-
-		if (value instanceof Iterable) {
-
-			List<Object> mapped = new ArrayList<>();
-
-			for (Object o : (Iterable<?>) value) {
-				mapped.add(convertValue(o, typeInformation.getActualType() != null ? typeInformation.getRequiredActualType()
-						: ClassTypeInformation.OBJECT));
-			}
-
-			return mapped;
-		}
-
-		if (value.getClass().isArray()
-				&& (ClassTypeInformation.OBJECT.equals(typeInformation) || typeInformation.isCollectionLike())) {
-			return value;
 		}
 
 		return this.converter.writeValue(value, typeInformation);
